@@ -1,11 +1,211 @@
-@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
+
+body {
+  background: url('../../public/images/auth-bg.jpg') center/cover no-repeat fixed;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 0;
+}
+
+.auth-wrap {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+}
+
+.hero-content {
+  color: #fff;
+  padding-left: 196px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+}
+
+.brand-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 428px;
+  margin-top: 130px;
+  position: relative;
+  top: 70px;
+}
+
+.brand-mini img {
+  width: 50px;
+  height: 50px;
+}
+
+.brand-mini span {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.hero-text h1 {
+  font-size: 50px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  margin-top: -75px;
+}
+
+.hero-text p {
+  font-size: 30px;
+  font-weight: 600;
+  color: #ffffff;
+  max-width: 560px;
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 10px;
+}
+
+.dot {
+  width: 30px;            
+  height: 10px;           
+  border-radius: 10px;    
+  background-color: rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background-color: #4A46E0;
+  width: 56px;
+}
+
+.form-side {
+  padding-right: 131px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(19.7px);
+  -webkit-backdrop-filter: blur(19.7px);
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 500px;
+  height: 500px;
+}
+
+.glass-card h2 {
+  color: #4A46E0;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.form-control {
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  background-color: transparent;
+  color: #000;
+}
+
+.form-control:focus {
+  border-color: #4A46E0;
+  box-shadow: 0 0 0 0.15rem rgba(74, 70, 224, 0.2);
+}
+
+.btn-brand {
+  background-color: #4A46E0;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-brand:hover {
+  filter: brightness(0.95);
+}
+
+.muted-link {
+  color: #4A46E0;
+  text-decoration: none;
+}
+
+.muted-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 991.98px) {
+  .hero-content {
+    padding: 3rem 2rem;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .brand-mini {
+    margin-bottom: 2rem;
+  }
+
+  .form-side {
+    padding: 2rem;
+  }
+
+  .glass-card {
+    max-width: 90%;
+  }
+}
+html, body {
+  height: 100%;
+  overflow: hidden; 
+}
+.form-check-label {
+  color: #4A46E0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 18.5px;
+}
+
+.muted-link {
+  color: #4A46E0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.muted-link:hover {
+  text-decoration: underline;
+}
+.form-check-input {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #4A46E0;
+  border-radius: 5px;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+  background-color: #4A46E0;
+  border-color: #4A46E0;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
