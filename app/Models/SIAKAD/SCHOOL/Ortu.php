@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\SIAKAD\SCHOOL;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,13 +13,13 @@ class Ortu extends Model
     protected $primaryKey = 'id_ortu';
 
     protected $fillable = [
-        'user_id', 'nama_wali', 'pekerjaan', 'no_hp', 'email',
+        'users_id', 'nama_ortu', 'pekerjaan', 'no_hp', 'email',
         'user_entry', 'tgl_entry', 'user_update', 'tgl_update',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'user_id');
+        return $this->belongsTo(User::class, 'users_id', 'users_id');
     }
 
     public function siswa()

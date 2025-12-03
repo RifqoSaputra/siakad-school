@@ -13,11 +13,11 @@ class Admin extends Model
     protected $primaryKey = 'id_admin';
     public $incrementing = true;
     protected $keyType = 'int';
-    public $timestamps = false; // using tgl_entry/tgl_update fields
+    public $timestamps = false; 
 
     protected $fillable = [
         'users_id',
-        'nama',
+        'nama_admin',
         'alamat_rmh',
         'kota_rmh',
         'no_hp',
