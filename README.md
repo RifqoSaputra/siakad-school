@@ -14,7 +14,7 @@ Dokumentasi ini menjelaskan langkah-langkah untuk menyalin (clone) repository da
     * Sistem Operasi: Docker, Laragon, XAMPP, atau Vagrant (Laravel Sail disarankan).
     * Database: **MySQL / MariaDB** (Sesuaikan dengan koneksi yang digunakan di `.env`).
 
----
+---x
 
 ## 🚀 Langkah-Langkah Instalasi dan Setup
 

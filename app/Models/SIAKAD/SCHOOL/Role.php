@@ -15,7 +15,7 @@ class Role extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'deskripsi',
+        'nama_role',
         'status',
         'user_entry',
         'tgl_entry',
