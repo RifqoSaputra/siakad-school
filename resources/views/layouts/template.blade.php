@@ -528,7 +528,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item">
-                                <a href="{{ route('dashboard.index') }}">Dashboard</a>
+                                <a href="{{ route('dashboard') }}">Dashboard</a>
                             </li>
 
                             @foreach ($breadcrumbTrail as $index => $menu)
@@ -570,7 +570,7 @@
                             {{ Str::upper($user->roles->first()->deskripsi ?? 'N/A') }}
                         </p>
 
-                        <button class="btn-profile" onclick="window.location.href='{{ route('profile') }}'">Setting
+                        <button class="btn-profile" onclick="window.location.href='{{ route('dashboard') }}'">Setting
                             Profile</button>
 
                         <form action="{{ route('logout') }}" method="POST" style="margin-top: 5px;">

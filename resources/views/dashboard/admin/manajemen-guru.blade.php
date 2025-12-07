@@ -152,31 +152,29 @@
                         <tbody>
                             @forelse ($guruData as $index => $guru)
                                 <tr>
-                                    <td>{{ $guruData->firstItem() + $index }}</td>
-                                    <td>{{ $guru->nip }}</td>
-                                    <td>
-                                        {{ $guru->nama }} 
-                                    </td>
-                                    <td>{{ $guru->jenis_kelamin ?? '-' }}</td>
-                                    <td>{{ $guru->status_kepegawaian ?? '-' }}</td>
-                                    <td>
-                                        <span
-                                            class="badge bg-{{ $guru->status_keaktifan == 'Aktif' ? 'success' : 'danger' }} text-white">
-                                            {{ $guru->status_keaktifan }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="#" class="btn btn-sm btn-warning"><i class="bi bi-pencil-square"></i>
-                                            Edit</a>
-                                        <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i> Hapus</button>
-                                    </td>
+                                {{-- Nomor urut --}}
+                                <td>{{ $guruData->firstItem() + $index }}</td>
+
+                                {{-- NIP --}}
+                                <td>{{ $guru->nip }}</td>
+
+                                {{-- Nama Guru (kolom di DB: nama_guru) --}}
+                                <td>{{ $guru->nama_guru }}</td>
+
+                                {{-- Email --}}
+                                <td>{{ $guru->email ?? '–' }}</td>
+
+                                {{-- No HP --}}
+                                <td>{{ $guru->no_hp ?? '–' }}</td>
+
+                                {{-- Kota / Alamat singkat --}}
+                                <td>{{ $guru->kota_rmh ?? '–' }}</td>
                                 </tr>
-                            @empty
+                                @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">Tidak ada data guru untuk filter yang dipilih.
-                                    </td>
-                                </tr>
-                            @endforelse
+                                <td colspan="6" class="text-center">Belum ada data guru</td>
+                                 </tr>
+                                @endforelse
                         </tbody>
                     </table>
                 </div>

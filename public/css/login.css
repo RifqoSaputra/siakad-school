@@ -1,0 +1,288 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body.login-body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #FFFFFF;
+    color: #323A48;
+}
+
+input, button, label, p, h1, h2, h3 {
+    font-family: inherit;
+}
+
+.login-page {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ========================= */
+/* LEFT PANEL */
+/* ========================= */
+
+.login-left {
+    position: relative;
+    flex: 1 1 0;
+    overflow: hidden;
+}
+
+/* Background image with 16px padding all around except right */
+.login-left-image {
+    position: absolute;
+    top: 16px;
+    bottom: 16px;
+    left: 16px;
+    right: 0;
+    background-size: cover;
+    background-position: center;
+    border-radius: 16px;
+}
+
+.login-left-overlay {
+    position: absolute;
+    top: 16px;
+    bottom: 16px;
+    left: 16px;
+    right: 0;
+    background: linear-gradient(
+        to top,
+        rgba(18, 24, 38, 0.6) 0%,
+        rgba(18, 24, 38, 0.2) 40%,
+        rgba(18, 24, 38, 0.0) 100%
+    );
+    border-radius: 16px;
+}
+
+.quote-wrapper {
+    position: absolute;
+    left: 50%;
+    bottom: 56px;
+    transform: translateX(-50%);
+    text-align: center;
+    color: white;
+    max-width: 520px;
+}
+
+/* Quote text */
+.quote-text {
+    font-size: 20px;
+    font-weight: 400; /* bold */
+    font-style: italic;
+    line-height: 150%;
+    color: #ffffff; /* sesuaikan jika perlu */
+    margin-bottom: 8px;
+}
+
+/* Quote author */
+.quote-author {
+    font-size: 16px;
+    font-weight: 400; /* medium */
+    line-height: 150%;
+    color: #ffffff; /* sesuaikan jika perlu */
+}
+
+.login-dots,
+.dot,
+.dot-active {
+    display: none;
+}
+
+/* ========================= */
+/* RIGHT PANEL */
+/* ========================= */
+
+.login-right {
+    flex: 0 0 520px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #FFFFFF;
+}
+
+.login-panel {
+    width: 520px;
+    padding: 0px 80px 0px 80px;
+}
+
+/* Logo */
+.login-logo-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 24px;
+}
+
+.login-logo {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+}
+
+/* Headings */
+.login-heading {
+    margin: 0 0 16px 0;
+    font-size: 32px;
+    font-weight: 700;
+    color: #323A48;
+    line-height: 1.25;
+}
+
+.login-subheading {
+    margin: 0 0 24px 0;
+    font-size: 16px;
+    color: #627795;
+}
+
+/* ========================= */
+/* FORM */
+/* ========================= */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* FIELD GROUP SPACING */
+.field-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.password-group {
+    margin-bottom: 24px !important; /* Password → Button spacing */
+}
+
+/* Label */
+.field-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #323A48;
+}
+
+/* Input */
+.field-input-wrapper {
+    position: relative;
+}
+
+.field-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #D4DAE3;
+    background-color: #FFFFFF;
+    font-size: 16px;
+    color: #323A48;
+    outline: none;
+
+    caret-color: #4A46E0;
+    transition: border-color 0.15s ease,
+                box-shadow 0.15s ease,
+                border-width 0.15s ease,
+                padding 0.15s ease;
+}
+
+.field-input::placeholder {
+    color: #AEBACB;
+}
+
+/* Focus styling */
+.field-input:focus {
+    border-color: #A7B9FA;
+    border-width: 2px;
+    padding: 11px 13px;
+    box-shadow: 0 0 0 4px #EEF3FF;
+}
+
+/* Password toggle */
+.field-input-password .field-input {
+    padding-right: 44px;
+}
+
+.password-toggle {
+    position: absolute;
+    inset-block: 0;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: transparent;
+    color: #AEBACB;
+    cursor: pointer;
+}
+
+.password-toggle .material-symbols-rounded {
+    font-size: 20px;
+}
+
+/* Error text */
+.field-error-text {
+    margin: 4px 0 0 0;
+    font-size: 16px;
+    color: #DC2626;
+    line-height: 150%;
+}
+
+/* ========================= */
+/* BUTTON */
+/* ========================= */
+
+.login-button {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: background-color 0.15s ease,
+                box-shadow 0.15s ease,
+                color 0.15s ease;
+}
+
+/* Disabled */
+.login-button-disabled {
+    background-color: #ECEEF2;
+    color: #AEBACB;
+    cursor: not-allowed;
+}
+
+/* Active */
+.login-button-active {
+    background-color: #4A46E0;
+    color: #FFFFFF;
+}
+
+.login-button-active:hover {
+    background-color: #3b36d0;
+    box-shadow: 0 8px 18px rgba(74, 70, 224, 0.25);
+}
+
+/* ========================= */
+/* RESPONSIVE */
+/* ========================= */
+
+@media (max-width: 960px) {
+    .login-page {
+        flex-direction: column;
+    }
+
+    .login-left {
+        display: none;
+    }
+
+    .login-right {
+        flex: 1 1 auto;
+        padding: 24px;
+    }
+
+    .login-panel {
+        width: 100%;
+        padding: 24px;
+    }
+}
