@@ -1,326 +1,166 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Siakad-School | Login (Frontend Only)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk | Mutiara Academy</title>
 
-    {{-- Bootstrap & Icons via CDN (tidak perlu npm) --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    {{-- CSS --}}
+    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
 
-    {{-- CSS kamu disatukan persis di sini (path gambar disesuaikan agar bekerja di Laravel) --}}
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    {{-- Material Symbols --}}
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        body {
-            background: url('{{ asset('images/bg-login.jpg') }}') center/cover no-repeat fixed;
-            position: relative;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            z-index: 0;
-        }
-
-        .auth-wrap {
-            position: relative;
-            z-index: 1;
-            height: 100vh;
-        }
-
-        .hero-content {
-            color: #fff;
-            padding-left: 196px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            height: 100%;
-        }
-
-        .brand-mini {
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            margin-bottom: 428px;
-            margin-top: 130px;
-            position: relative;
-            top: 70px;
-        }
-
-        .brand-mini img {
-            width: 50px;
-            height: 50px;
-        }
-
-        .brand-mini span {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .hero-text h1 {
-            font-size: 50px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 1rem;
-            margin-top: -75px;
-        }
-
-        .hero-text p {
-            font-size: 30px;
-            font-weight: 600;
-            color: #ffffff;
-            max-width: 560px;
-        }
-
-        .carousel-dots {
-            display: flex;
-            gap: 10px;
-        }
-
-        .dot {
-            width: 30px;
-            height: 10px;
-            border-radius: 10px;
-            background-color: rgba(255, 255, 255, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .dot.active {
-            background-color: #4A46E0;
-            width: 56px;
-        }
-
-        .form-side {
-            padding-right: 131px;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(19.7px);
-            -webkit-backdrop-filter: blur(19.7px);
-            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-            border-radius: 20px;
-            padding: 3rem 3rem;
-            width: 100%;
-            max-width: 500px;
-            height: 500px;
-        }
-
-        .glass-card h2 {
-            color: #4A46E0;
-            font-weight: 700;
-            margin-bottom: 3rem;
-        }
-
-        .form-control {
-            border: 1px solid rgba(0, 0, 0, 0.25);
-            border-radius: 10px;
-            padding: 0.9rem 1rem;
-            background-color: transparent;
-            color: #000;
-        }
-
-        .form-control:focus {
-            border-color: #4A46E0;
-            box-shadow: 0 0 0 0.15rem rgba(74, 70, 224, 0.2);
-        }
-
-        .btn-brand {
-            background-color: #4A46E0;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-brand:hover {
-            filter: brightness(0.95);
-        }
-
-        .muted-link {
-            color: #4A46E0;
-            text-decoration: none;
-        }
-
-        .muted-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 991.98px) {
-            .hero-content {
-                padding: 3rem 2rem;
-                align-items: center;
-                text-align: center;
-                margin-bottom: 2rem;
-            }
-
-            .brand-mini {
-                margin-bottom: 2rem;
-            }
-
-            .form-side {
-                padding: 2rem;
-            }
-
-            .glass-card {
-                max-width: 90%;
-            }
-        }
-
-        html,
-        body {
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .form-check-label {
-            color: #4A46E0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 600;
-            font-size: 13px;
-            line-height: 18.5px;
-        }
-
-        .muted-link {
-            color: #4A46E0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 600;
-            font-size: 13px;
-            text-decoration: none;
-        }
-
-        .muted-link:hover {
-            text-decoration: underline;
-        }
-
-        .form-check-input {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #4A46E0;
-            border-radius: 5px;
-            background-color: transparent;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .form-check-input:checked {
-            background-color: #4A46E0;
-            border-color: #4A46E0;
-        }
-
-        .form-check {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-    </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
-<body>
-    <div class="container-fluid auth-wrap">
-        <div class="row h-100 g-0">
-            {{-- Kiri: hero (disembunyikan di mobile) --}}
-            <div class="col-lg-6 d-none d-lg-flex align-items-center">
-                <div class="hero-content">
-                    <div class="brand-mini">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo" />
-                        <span>Mutiara Bangsa</span>
-                    </div>
+<body class="login-body">
+<div class="login-page">
 
-                    <div class="hero-text">
-                        <h1>Wujudkan Impian</h1>
-                        <p>Raih impian dan cita-cita anak bersama dengan kami</p>
-                        <div class="carousel-dots mt-4">
-                            <span class="dot active"></span>
-                            <span class="dot"></span>
-                            <span class="dot"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    {{-- BAGIAN KIRI --}}
+    <div class="login-left">
 
-            {{-- Kanan: form (frontend only) --}}
-            <div class="col-lg-6 d-flex justify-content-center align-items-center form-side">
-                <div class="glass-card">
-                    <h2>Hello, Welcome back</h2>
+        <div class="login-left-image"
+             style="background-image: url('{{ asset('images/bg-login.jpg') }}');">
+        </div>
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            @foreach ($errors->all() as $error)
-                                {{ $error }}<br>
-                            @endforeach
-                        </div>
-                    @endif
+        <div class="login-left-overlay"></div>
 
-                    <form id="loginForm" action="{{ route('login.action') }}" method="POST">
-                        @csrf <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" id="username" name="username"
-                                class="form-control @error('username') is-invalid @enderror"
-                                placeholder="Enter your Username" value="{{ old('username') }}" required>
-                            @error('username')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+        <div class="quote-wrapper">
+            <p class="quote-text">
+                <b>“Hanya dengan Pendidikan kita akan tumbuh menjadi suatu bangsa.”</b>
+            </p>
 
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="position-relative">
-                                <input type="password" id="password" name="password"
-                                    class="form-control @error('password') is-invalid @enderror"
-                                    placeholder="Enter your password" required>
-                            </div>
-                        </div>
-
-                        <button class="btn btn-brand w-100 py-2" type="submit">Sign In</button>
-                    </form>
-                </div>
-            </div>
+            <p class="quote-author">Dewi Sartika</p>
         </div>
     </div>
 
-    {{-- Bootstrap JS --}}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const pw = document.getElementById('password');
-        const icon = document.getElementById('pwIcon');
-        document.getElementById('togglePw').addEventListener('click', () => {
-            const isText = pw.type === 'text';
-            pw.type = isText ? 'password' : 'text';
-            icon.classList.toggle('bi-eye', isText);
-            icon.classList.toggle('bi-eye-slash', !isText);
+    {{-- BAGIAN KANAN --}}
+    <div class="login-right">
+        <div class="login-panel">
+
+            {{-- LOGO --}}
+            <div class="login-logo-wrapper">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="login-logo">
+            </div>
+
+            {{-- HEADING --}}
+            <h1 class="login-heading">
+                Masuk ke<br>Mutiara Academy
+            </h1>
+            <p class="login-subheading">
+                Sistem Akademik SMK Mutiara Bangsa 1
+            </p>
+
+            {{-- GLOBAL ERROR --}}
+            @if ($errors->has('username'))
+                <p class="field-error-text" style="margin-bottom: 16px;">
+                    {{ $errors->first('username') }}
+                </p>
+            @endif
+
+            <form method="POST"
+                  action="{{ route('login.process') }}"
+                  class="login-form"
+                  id="loginForm">
+                @csrf
+
+                {{-- USERNAME FIELD --}}
+                <div class="field-group">
+                    <label for="username" class="field-label">Username</label>
+
+                    <div class="field-input-wrapper">
+                        <input id="username"
+                               type="text"
+                               name="username"
+                               value="{{ old('username') }}"
+                               placeholder="Username..."
+                               class="field-input @error('username') field-input-error @enderror"
+                               autocomplete="username"
+                               autofocus>
+                    </div>
+
+                    @error('username')
+                        <p class="field-error-text">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- PASSWORD FIELD (no label sesuai permintaan) --}}
+                <div class="field-group password-group">
+
+                    <div class="field-input-wrapper field-input-password">
+                        <input id="password"
+                               type="password"
+                               name="password"
+                               value="{{ old('password') }}"
+                               class="field-input @error('password') field-input-error @enderror"
+                               placeholder="Kata sandi..."
+                               autocomplete="current-password">
+
+                        <button type="button" class="password-toggle" aria-label="Toggle visibility">
+                            <span class="material-symbols-rounded">visibility_off</span>
+                        </button>
+                    </div>
+
+                    {{-- error khusus password --}}
+                    @error('password')
+                        <p class="field-error-text">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- LOGIN BUTTON --}}
+                <button type="submit"
+                        class="login-button login-button-disabled"
+                        id="loginButton"
+                        disabled>
+                    Masuk
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginButton   = document.getElementById('loginButton');
+    const toggleButton  = document.querySelector('.password-toggle');
+    const toggleIcon    = toggleButton?.querySelector('.material-symbols-rounded');
+
+    function updateButtonState() {
+        const canSubmit =
+            usernameInput.value.trim() !== '' &&
+            passwordInput.value.trim() !== '';
+
+        if (canSubmit) {
+            loginButton.disabled = false;
+            loginButton.classList.remove('login-button-disabled');
+            loginButton.classList.add('login-button-active');
+        } else {
+            loginButton.disabled = true;
+            loginButton.classList.add('login-button-disabled');
+            loginButton.classList.remove('login-button-active');
+        }
+    }
+
+    usernameInput.addEventListener("input", updateButtonState);
+    passwordInput.addEventListener("input", updateButtonState);
+
+    updateButtonState();
+
+    if (toggleButton) {
+        toggleButton.addEventListener('click', function () {
+            const showing = passwordInput.type === 'text';
+            passwordInput.type = showing ? 'password' : 'text';
+            toggleIcon.textContent = showing ? 'visibility_off' : 'visibility';
         });
+    }
+})();
+</script>
 
-        // const form = document.getElementById('loginForm');
-        // form.addEventListener('submit', (e) => {
-        //     if (!form.checkValidity()) {
-        //         e.preventDefault();
-        //         e.stopPropagation();
-        //     } else {
-        //         e.preventDefault();
-
-        //         const ok = document.createElement('div');
-        //         ok.className = 'alert alert-success mt-3';
-        //         ok.textContent = 'Form terkirim (demo frontend). Integrasi backend belum diaktifkan.';
-        //         form.after(ok);
-        //     }
-        //     form.classList.add('was-validated');
-        // });
-    </script>
 </body>
-
 </html>
