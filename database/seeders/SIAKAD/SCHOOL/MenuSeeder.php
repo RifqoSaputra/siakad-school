@@ -118,8 +118,8 @@ class MenuSeeder extends Seeder
         // Children Data Master (Parent 2)
         $menus[] = ['menu_id' => 6, 'parent_id' => 2, 'nama_menu' => 'Data Guru', 'url' => '/admin/guru', 'icon' => 'chalkboard-teacher', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 1, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now,];
         $menus[] = ['menu_id' => 7, 'parent_id' => 2, 'nama_menu' => 'Data Siswa', 'url' => '/admin/siswa', 'icon' => 'user-graduate', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 2, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now,];
-        $menus[] = ['menu_id' => 8, 'parent_id' => 2, 'nama_menu' => 'Mata Pelajaran', 'url' => '/admin/mapel', 'icon' => 'book-open', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 3, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now,];
-        $menus[] = ['menu_id' => 9, 'parent_id' => 2, 'nama_menu' => 'Data Kelas', 'url' => '/admin/kelas', 'icon' => 'door-closed', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 4, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now,];
+        $menus[] = ['menu_id' => 8, 'parent_id' => 2, 'nama_menu' => 'Mata Pelajaran', 'url' => '/admin/master/mapel', 'icon' => 'book-open', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 3, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now,];
+        $menus[] = ['menu_id' => 9, 'parent_id' => 2, 'nama_menu' => 'Data Kelas', 'url' => '/admin/master/kelas', 'icon' => 'door-closed', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 4, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now,];
 
         // Children Manajemen User (Parent 4)
         $menus[] = ['menu_id' => 12, 'parent_id' => 4, 'nama_menu' => 'Manajemen Role', 'url' => '/admin/manajemen/role', 'icon' => 'user-tag', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 1, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now,];
