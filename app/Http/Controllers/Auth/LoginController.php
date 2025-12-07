@@ -5,72 +5,55 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
+use App\Models\SIAKAD\SCHOOL\User; 
 
 class LoginController extends Controller
 {
     /**
-     * Tampilkan halaman login utama.
+     * Tampilkan form login (jika diperlukan)
      */
     public function showLoginForm()
     {
-        // view login yang sudah kamu buat
-        return view('auth.login');
+        // Ganti 'auth.login' dengan nama view login Anda yang sebenarnya (misal: 'auth')
+        return view('auth.login'); 
     }
-
+    
     /**
-     * Proses login.
+     * Handle percobaan autentikasi. (Menggantikan nama 'authenticate' menjadi 'login')
      */
-    public function login(Request $request)
+    public function login(Request $request) 
     {
-        // 1. Validasi input
-        $credentials = $request->validate(
-            [
-                'username' => ['required', 'string'],
-                'password' => ['required', 'string'],
-            ],
-            [
-                'username.required' => 'Username wajib diisi.',
-                'password.required' => 'Kata sandi wajib diisi.',
-            ]
-        );
-
-        // 2. Coba autentikasi dengan kolom username + status = 1 (aktif)
-        if (Auth::attempt([
-            'username' => $credentials['username'],
-            'password' => $credentials['password'],
-            'status'   => 1,
-        ])) {
-            // regenerate session supaya lebih aman
+        // 1. Validasi Input
+        $credentials = $request->validate([
+            // Laravel secara default mendukung penggunaan kolom selain 'email' di sini.
+            'username' => ['required'], 
+            'password' => ['required'],
+        ]);
+        
+        // 2. Coba Autentikasi
+        // Ditambahkan pengecekan 'status' = 1 (aktif) agar sesuai dengan logika Anda sebelumnya.
+        if (Auth::attempt(['username' => $request->username, 'password' => $request->password, 'status' => 1])) {
             $request->session()->regenerate();
-
-            /**
-             * 🔹 INI BAGIAN PENTING SOLUSI A
-             * Balikkan redirect ke /dashboard (seperti perilaku lama).
-             * Jika user sebelumnya menuju halaman lain, intended() akan mengarah ke sana.
-             */
-            return redirect()->intended('/dashboard');
+            
+            // Redirect SEMUA user yang berhasil login ke rute 'dashboard.index'
+            return redirect()->intended(route('dashboard.index')); 
         }
 
-        // 3. Jika gagal login
-        return back()
-            ->withInput() // 👉 kirim kembali semua input ke session (old())
-            ->withErrors([
-            'password' => 'Username atau kata sandi belum sesuai.',
-    ]);
+        // 3. Autentikasi Gagal
+        return back()->withErrors([
+            'username' => 'Username atau password tidak sesuai, atau akun Anda tidak aktif.',
+        ])->onlyInput('username');
     }
 
-    /**
-     * Logout user.
-     */
     public function logout(Request $request)
     {
         Auth::logout();
 
         $request->session()->invalidate();
+
         $request->session()->regenerateToken();
 
-        // kembali ke halaman login
-        return redirect()->route('login');
+        // Redirect ke halaman root (login)
+        return redirect('/');
     }
 }
