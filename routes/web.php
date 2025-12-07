@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ManajemenSiswaController;
 use App\Http\Controllers\Admin\NilaiHarianSiswaController;
 use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\KelasController;
+use App\Http\Controllers\Admin\PengumumanController;
 
 // ===============================
 // GURU CONTROLLERS
@@ -36,6 +37,7 @@ use App\Http\Controllers\Ortu\JadwalController;
 use App\Http\Controllers\Ortu\CekAbsenController;
 use App\Http\Controllers\Ortu\NilaiSiswaController;
 use App\Http\Controllers\Ortu\InfoAnakController;
+use App\Http\Controllers\PengumumanNotificationController;
 
 
 // ===============================
@@ -101,6 +103,19 @@ Route::middleware('auth')->group(function () {
 
 
     // ---------------------------
+    // ADMIN: PENGUMUMAN
+    // ---------------------------
+    Route::prefix('admin/pengumuman')->as('admin.pengumuman.')->middleware('role:Admin')->group(function () {
+        Route::get('/', [PengumumanController::class, 'index'])->name('index');
+        Route::get('/create', [PengumumanController::class, 'create'])->name('create');
+        Route::post('/', [PengumumanController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [PengumumanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [PengumumanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PengumumanController::class, 'destroy'])->name('destroy');
+    });
+
+
+    // ---------------------------
     // RUTE GURU
     // ---------------------------
     Route::prefix('guru')->middleware('role:Guru')->group(function () {
@@ -127,7 +142,7 @@ Route::middleware('auth')->group(function () {
 
         // Jadwal guru
         Route::get('jadwal', function () {
-            return view('guru.jadwal.index');
+            return view('dashboard.guru.jadwal.index');
         })->name('guru.jadwal');
 
         // Absensi guru
@@ -163,5 +178,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/harian/detail/{mapelId}', [NilaiSiswaController::class, 'nilaiHarianDetail'])->name('harian.detail');
             Route::get('/ujian', [NilaiSiswaController::class, 'nilaiUjian'])->name('ujian');
         });
+    });
+
+    // ---------------------------
+    // NOTIFIKASI PENGUMUMAN (SEMUA ROLE LOGIN)
+    // ---------------------------
+    Route::prefix('notifikasi/pengumuman')->as('pengumuman.notif.')->group(function () {
+        Route::get('/', [PengumumanNotificationController::class, 'index'])->name('index');
+        Route::post('/{id}/read', [PengumumanNotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [PengumumanNotificationController::class, 'markAllAsRead'])->name('readAll');
     });
 });

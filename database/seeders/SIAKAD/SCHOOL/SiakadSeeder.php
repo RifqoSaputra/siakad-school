@@ -4,6 +4,7 @@ namespace Database\Seeders\SIAKAD\SCHOOL;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Database\Seeders\SIAKAD\SCHOOL\PengumumanSeeder;
 
 class SIAKADSeeder extends Seeder
 {
@@ -13,6 +14,8 @@ class SIAKADSeeder extends Seeder
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         }
 
+        DB::table('pengumuman_user')->truncate();
+        DB::table('pengumuman')->truncate();
         DB::table('nilai_ujian')->truncate();
         DB::table('jadwal_mapel')->truncate();
         DB::table('siswa_kelas')->truncate();
@@ -47,6 +50,7 @@ class SIAKADSeeder extends Seeder
             SiswaKelasSeeder::class,
             JadwalMapelSeeder::class,
             NilaiUjianSeeder::class,
+            PengumumanSeeder::class,
         ]);
 
         if (DB::connection()->getDriverName() == 'mysql') {

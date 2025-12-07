@@ -550,10 +550,12 @@
             </div>
 
             <div class="profile-section">
-                <div class="notification">
-                    <i class="bi bi-bell"></i>
-                    <span class="notification-badge">3</span>
-                </div>
+                @php
+                    $authUser = Auth::user();
+                @endphp
+                @if ($authUser && ($authUser->hasRole('Guru') || $authUser->hasRole('Orang Tua')))
+                    @include('components.pengumuman-notification', ['authUser' => $authUser])
+                @endif
 
                 <div class="profile-dropdown" id="profileToggle">
                     <img src="{{ asset('images/default-user.jpg') }}" alt="Profile">

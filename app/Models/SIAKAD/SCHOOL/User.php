@@ -93,6 +93,22 @@ class User extends Authenticatable
         return $this->roles()->where('nama_role', $roleName)->exists();
     }
 
+    /**
+     * Notifikasi pengumuman per pengguna.
+     */
+    public function pengumumanNotifications()
+    {
+        return $this->hasMany(PengumumanUser::class, 'users_id', 'users_id');
+    }
+
+    /**
+     * Relasi untuk mengambil notifikasi pengumuman yang belum dibaca.
+     */
+    public function unreadPengumumanNotifications()
+    {
+        return $this->pengumumanNotifications()->where('is_read', false);
+    }
+
     public function getNamaLengkapAttribute()
     {
         // Ambil deskripsi role pertama user
