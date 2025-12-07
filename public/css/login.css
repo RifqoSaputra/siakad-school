@@ -105,7 +105,7 @@ input, button, label, p, h1, h2, h3 {
 
 .login-panel {
     width: 520px;
-    padding: 80px;
+    padding: 0px 80px 0px 80px;
 }
 
 /* Logo */
