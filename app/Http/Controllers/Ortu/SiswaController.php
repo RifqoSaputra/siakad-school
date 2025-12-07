@@ -53,7 +53,7 @@ class SiswaController extends Controller
         session()->put('selected_siswa_id', $id_siswa);
         session()->put('selected_siswa_nama', $siswa->nama); // Simpan nama untuk kemudahan display
 
-        // 6. Redirect kembali ke halaman sebelumnya dengan pesan sukses
-        return redirect()->back()->with('success', 'Konteks data berhasil dialihkan ke ' . $siswa->nama . '.');
+        // 6. Redirect kembali ke halaman sebelumnya tanpa toast
+        return redirect()->back();
     }
 }

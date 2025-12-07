@@ -35,6 +35,7 @@ use App\Http\Controllers\Ortu\SiswaController;
 use App\Http\Controllers\Ortu\JadwalController;
 use App\Http\Controllers\Ortu\CekAbsenController;
 use App\Http\Controllers\Ortu\NilaiSiswaController;
+use App\Http\Controllers\Ortu\InfoAnakController;
 
 
 // ===============================
@@ -148,9 +149,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('absensi', [CekAbsenController::class, 'index'])->name('ortu.absensi');
 
-        Route::get('info-anak', function () {
-            return view('ortu.info-anak.index');
-        })->name('ortu.info-anak');
+        // Info anak
+        Route::get('info-anak', [InfoAnakController::class, 'index'])->name('ortu.info-anak');
 
         // Rapor
         Route::get('rapor', function () {
