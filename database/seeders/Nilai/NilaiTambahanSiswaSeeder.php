@@ -1,0 +1,47 @@
+<?php
+
+namespace Database\Seeders\Nilai;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class NilaiTambahanSiswaSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $now = Carbon::now();
+        $userEntry = 1;
+
+        // Ambil ID nilai tambahan yang baru saja dibuat
+        $header_nilai = DB::table('nilai_tambahan')->select('id', 'kelas_id')->get();
+
+        $nilai_siswa = [];
+
+        foreach ($header_nilai as $header) {
+            // Ambil siswa yang ada di kelas terkait
+            $siswa_di_kelas = DB::table('siswa_kelas')
+                ->where('kelas_id', $header->kelas_id)
+                ->where('status', 1)
+                ->pluck('id_siswa');
+
+            foreach ($siswa_di_kelas as $id_siswa) {
+                // Generate Nilai Acak (70.0 - 98.0)
+                $nilai_acak = rand(700, 980) / 10;
+
+                $nilai_siswa[] = [
+                    'nilai_tambahan_id' => $header->id,
+                    'id_siswa'          => $id_siswa,
+                    'nilai'             => $nilai_acak,
+                    'keterangan'        => ($nilai_acak >= 75) ? 'Tuntas' : 'Remedial',
+                    'user_entry'        => $userEntry,
+                    'tgl_entry'         => $now,
+                ];
+            }
+        }
+
+        foreach (array_chunk($nilai_siswa, 200) as $chunk) {
+            DB::table('nilai_tambahan_siswa')->insert($chunk);
+        }
+    }
+}

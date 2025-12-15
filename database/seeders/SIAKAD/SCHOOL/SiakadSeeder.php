@@ -13,6 +13,10 @@ class SIAKADSeeder extends Seeder
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         }
 
+        DB::table('pengumuman_user')->truncate();
+        DB::table('pengumuman')->truncate();
+        DB::table('catatan_rapor_semester')->truncate();
+        DB::table('absensi')->truncate();
         DB::table('nilai_ujian')->truncate();
         DB::table('jadwal_mapel')->truncate();
         DB::table('siswa_kelas')->truncate();
@@ -46,7 +50,9 @@ class SIAKADSeeder extends Seeder
             GuruMapelSeeder::class,
             SiswaKelasSeeder::class,
             JadwalMapelSeeder::class,
-            NilaiUjianSeeder::class,
+            AbsensiSeeder::class,
+            CatatanRaporSemesterSeeder::class,
+            PengumumanSeeder::class
         ]);
 
         if (DB::connection()->getDriverName() == 'mysql') {

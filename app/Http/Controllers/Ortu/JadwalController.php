@@ -8,22 +8,40 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\SIAKAD\SCHOOL\Siswa;
 use App\Models\SIAKAD\SCHOOL\SiswaKelas;
 use App\Models\SIAKAD\SCHOOL\JadwalMapel;
-use App\Models\SIAKAD\SCHOOL\Kelas; // Menggunakan model Kelas untuk filter
+use App\Models\SIAKAD\SCHOOL\Kelas;
 use Carbon\Carbon;
 
 class JadwalController extends Controller
 {
+    /**
+     * Helper: Mendapatkan tanggal Senin s.d Jumat untuk minggu ini.
+     * @return array ['Senin' => 'YYYY-MM-DD', ...]
+     */
+    private function getTanggalMingguan()
+    {
+        $now = Carbon::now(config('app.timezone', 'Asia/Jakarta'));
+        $startOfWeek = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $days = [];
+        // PERBAIKAN: Mendapatkan tanggal untuk Senin (1) sampai Minggu (0)
+        // Kita loop 7 hari penuh dari Senin.
+        for ($i = 0; $i < 7; $i++) {
+            $date = $startOfWeek->copy()->addDays($i);
+            $dayNumber = $date->dayOfWeek; // 1=Senin, 0=Minggu
+
+            // Panggil getHariIndonesia dengan flag $fullDay=true untuk mendapatkan nama hari lengkap
+            $days[$this->getHariIndonesia($dayNumber, true)] = $date->format('Y-m-d');
+        }
+        return $days;
+    }
+
     /**
      * Menampilkan jadwal pelajaran mingguan untuk siswa yang dipilih.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
-
-        // 1. Dapatkan ID siswa yang sedang aktif dari session
         $selectedSiswaId = session('selected_siswa_id');
 
-        // Logic fallback untuk mendapatkan siswa pertama
         if (!$selectedSiswaId) {
             $ortu = $user->ortu;
             if ($ortu && $ortu->siswa()->first()) {
@@ -34,25 +52,21 @@ class JadwalController extends Controller
             }
         }
 
-        // 2. Ambil data siswa
         $siswa = Siswa::find($selectedSiswaId);
         if (!$siswa) {
             return redirect()->back()->with('error', 'Data siswa tidak ditemukan.');
         }
 
-        // 3. Ambil RIWAYAT KELAS SISWA (untuk membatasi filter Tingkat Kelas)
+        // ... (Logika penentuan Kelas, Tahun Ajaran, dan Semester tetap sama) ...
         $riwayatKelas = SiswaKelas::where('id_siswa', $siswa->id_siswa)
             ->with('kelas')
             ->get();
 
-        // 4. Batasi filter Tingkat Kelas hanya pada tingkat yang pernah/sedang diikuti siswa
         $semuaTingkatKelas = $riwayatKelas
             ->pluck('kelas.tingkat_kelas', 'kelas.tingkat_kelas')
             ->unique()
-            ->sort(); // Urutkan tingkat kelas
+            ->sort();
 
-        // 5. Tentukan Tingkat Kelas yang dipilih
-        // Default Tingkat Kelas adalah yang paling tinggi (terakhir) yang pernah diikuti
         $defaultTingkatKelas = $riwayatKelas
             ->sortByDesc('kelas.tingkat_kelas')
             ->first()
@@ -60,22 +74,19 @@ class JadwalController extends Controller
 
         $selectedTingkatKelas = $request->input('tingkat_kelas', $defaultTingkatKelas);
 
-        // 6. Dapatkan Tahun Ajaran dan Semester yang terkait dengan Tingkat Kelas yang dipilih
         $siswaKelas = null;
         $selectedTahunAjaran = null;
-        $selectedSemester = null; // Dihilangkan dari filter, tapi masih perlu untuk query
+        $selectedSemester = null;
 
         if ($selectedTingkatKelas) {
-            // Cari Kelas ID siswa yang paling baru/aktif untuk Tingkat Kelas yang dipilih
             $siswaKelas = SiswaKelas::where('id_siswa', $siswa->id_siswa)
                 ->whereHas('kelas', function ($q) use ($selectedTingkatKelas) {
                     $q->where('tingkat_kelas', $selectedTingkatKelas);
                 })
                 ->with('kelas')
-                // Urutkan berdasarkan Tahun Ajaran dan Semester (asumsi semester Genap lebih baru dari Ganjil di TA yang sama)
                 ->join('kelas', 'siswa_kelas.kelas_id', '=', 'kelas.kelas_id')
                 ->orderBy('kelas.tahun_ajaran', 'desc')
-                ->orderByRaw("FIELD(kelas.semester, 'Genap', 'Ganjil')") // Genap > Ganjil
+                ->orderByRaw("FIELD(kelas.semester, 'Genap', 'Ganjil')")
                 ->select('siswa_kelas.*')
                 ->first();
 
@@ -85,72 +96,80 @@ class JadwalController extends Controller
             }
         }
 
-        // Tentukan tanggal awal dan akhir minggu ini (Senin - Jumat)
-        $now = Carbon::now(config('app.timezone', 'Asia/Jakarta'));
-        $startOfWeek = $now->copy()->startOfWeek(Carbon::MONDAY)->format('Y-m-d');
-        $endOfWeek = $now->copy()->endOfWeek(Carbon::FRIDAY)->format('Y-m-d');
-
-        $jadwalPerHari = collect();
+        $tanggalMingguan = $this->getTanggalMingguan();
         $error = null;
+        $jadwalPerHari = collect();
 
-        // 7. Proses Query Jadwal
-        if (!$siswaKelas) {
+        // 7. Proses Query Jadwal (Mengambil TEMPLATE Mingguan)
+        if (!$siswaKelas || !$selectedTahunAjaran) {
             $error = 'Siswa tidak terdaftar di tingkat kelas yang dipilih atau data tidak ditemukan.';
+            $jadwalPerHari = collect();
         } else {
-            // Ambil semua jadwal untuk kelas tersebut berdasarkan TANGGAL JADWAL (minggu ini)
-            // Filtering Tahun Ajaran dan Semester sudah dilakukan di SiswaKelas (item 6)
+            // PERBAIKAN: Gunakan format KAPITAL SEMUA ('SENIN', 'SELASA') untuk filter WHERE
+            $hariFilter = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT']; // <--- UBAH KE KAPITAL SEMUA
+
             $jadwalQuery = JadwalMapel::where('kelas_id', $siswaKelas->kelas_id)
-                ->whereBetween('tanggal_jadwal', [$startOfWeek, $endOfWeek])
+                ->where('tahun_ajaran', $selectedTahunAjaran)
+                ->whereIn('hari', $hariFilter)
                 ->with(['penugasan.guru', 'penugasan.mapel', 'ruangan'])
-                ->orderBy('tanggal_jadwal')
+                ->orderByRaw("FIELD(hari, 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT')") // Urutkan KAPITAL SEMUA
                 ->orderBy('jam_mulai')
                 ->get();
 
-            // Kelompokkan berdasarkan nama hari dari tanggal_jadwal
-            $jadwalPerHari = $jadwalQuery->groupBy(function ($item) {
-                $tanggal = Carbon::parse($item->tanggal_jadwal);
-                return $this->getHariIndonesia($tanggal->dayOfWeek);
+            // Kelompokkan berdasarkan kolom 'hari' (Contoh: 'SENIN'). Key hasil grouping adalah KAPITAL SEMUA.
+            $jadwalPerHari = $jadwalQuery->groupBy('hari')->map(function ($jadwalHarian) {
+                return $jadwalHarian->values();
             });
         }
 
         // 8. Tentukan hari ini untuk default tab aktif
-        $dayOfWeek = Carbon::now(config('app.timezone', 'Asia/Jakarta'))->dayOfWeek; // 0=Minggu, 1=Senin, ..., 6=Sabtu
-        $hariIni = $this->getHariIndonesia($dayOfWeek);
+        $dayOfWeek = Carbon::now(config('app.timezone', 'Asia/Jakarta'))->dayOfWeek;
+        // KEMBALIKAN HARI INI DALAM FORMAT KAPITAL SEMUA
+        $hariIni = $this->getHariIndonesia($dayOfWeek); // <-- Hasilnya sekarang 'SENIN'
 
         if ($dayOfWeek == Carbon::SATURDAY || $dayOfWeek == Carbon::SUNDAY) {
-            $hariIni = 'Senin';
+            $hariIni = 'SENIN'; // Default ke SENIN jika weekend
         }
 
         return view('dashboard.ortu.jadwal-mapel', [
             'jadwalPerHari' => $jadwalPerHari,
             'hariIni' => $hariIni,
             'siswa' => $siswa,
-            // Data filter yang relevan
             'semuaTingkatKelas' => $semuaTingkatKelas,
             'selectedTingkatKelas' => $selectedTingkatKelas,
-            // Data Kelas yang terpilih (otomatis berdasarkan Tingkat Kelas)
             'selectedTahunAjaran' => $selectedTahunAjaran,
             'selectedSemester' => $selectedSemester,
             'siswaKelas' => $siswaKelas,
-            'error' => $error
+            'error' => $error,
+            'tanggalMingguan' => $tanggalMingguan,
         ]);
     }
 
     /**
      * Helper: Konversi angka hari ke nama hari dalam Bahasa Indonesia.
      */
-    private function getHariIndonesia($dayNumber)
+    private function getHariIndonesia($dayNumber, $fullDay = false)
     {
         // Carbon dayOfWeek: 0=Minggu, 1=Senin, ..., 6=Sabtu
         $hari = [
-            1 => 'Senin',
-            2 => 'Selasa',
-            3 => 'Rabu',
-            4 => 'Kamis',
-            5 => 'Jumat',
-            6 => 'Sabtu',
-            0 => 'Minggu',
+            1 => 'SENIN', // <--- UBAH KE KAPITAL SEMUA
+            2 => 'SELASA', // <--- UBAH KE KAPITAL SEMUA
+            3 => 'RABU', // <--- UBAH KE KAPITAL SEMUA
+            4 => 'KAMIS', // <--- UBAH KE KAPITAL SEMUA
+            5 => 'JUMAT', // <--- UBAH KE KAPITAL SEMUA
+            6 => 'SABTU', // <--- UBAH KE KAPITAL SEMUA
+            0 => 'MINGGU', // <--- UBAH KE KAPITAL SEMUA
         ];
-        return $hari[$dayNumber] ?? 'Senin'; // Default ke Senin jika tidak valid
+
+        // JIKA dipanggil oleh getTanggalMingguan ($fullDay=true), kembalikan nama hari apa adanya.
+        if ($fullDay) {
+            return $hari[$dayNumber] ?? 'SENIN';
+        }
+
+        // LOGIKA LAMA (untuk menentukan tab aktif): Jika hari kerja, kembalikan nama hari. 
+        if ($dayNumber >= Carbon::MONDAY && $dayNumber <= Carbon::FRIDAY) {
+            return $hari[$dayNumber];
+        }
+        return 'SENIN'; // Default ke SENIN jika weekend atau tidak valid
     }
 }
