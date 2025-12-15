@@ -31,16 +31,17 @@ class AbsensiController extends Controller
         // 2. Tentukan tanggal filter (default hari ini)
         $filterTanggal = $request->input('tanggal', date('Y-m-d'));
 
-        // **PERBAIKAN 1:** Mengambil nama hari dari $filterTanggal untuk display.
+        // **PERBAIKAN SOLUSI UTAMA:** Ambil nama hari dari $filterTanggal.
         $carbonDate = Carbon::parse($filterTanggal);
+        // Carbon::format('N') mengembalikan angka hari (1=Senin..7=Minggu)
         $hariIndonesia = $this->getHariIndonesia($carbonDate->format('N'));
 
         // 3. Tentukan Tahun Ajaran Aktif (Hardcode sementara)
         $tahunAjaranAktif = '2024/2025';
 
-        // 4. Ambil Jadwal Mengajar Guru berdasarkan TANGGAL JADWAL
-        // **PERBAIKAN UTAMA:** Menggunakan 'tanggal_jadwal' dan $filterTanggal
-        $jadwalMengajar = JadwalMapel::whereDate('tanggal_jadwal', $filterTanggal)
+        // 4. Ambil Jadwal Mengajar Guru berdasarkan HARI (kolom 'hari')
+        // **PERUBAHAN UTAMA:** Menggunakan kolom 'hari' dan membandingkannya dengan nama hari
+        $jadwalMengajar = JadwalMapel::where('hari', $hariIndonesia)
             ->whereHas('penugasan', function ($query) use ($guru, $tahunAjaranAktif) {
                 // Relasi penugasan harus memiliki guru yang login dan tahun ajaran aktif
                 $query->where('id_guru', $guru->id_guru)
@@ -51,9 +52,10 @@ class AbsensiController extends Controller
             ->orderBy('jam_mulai')
             ->get();
 
-        // 5. Cek Status Absensi
+        // 5. Cek Status Absensi untuk tanggal yang difilter
         foreach ($jadwalMengajar as $jadwal) {
             // Cek status absensi berdasarkan jadwal_mapel_id dan $filterTanggal
+            // Absensi masih dicari berdasarkan tanggal pada kolom 'waktu_absen'
             $absensiTerakhir = Absensi::where('jadwal_mapel_id', $jadwal->jadwal_mapel_id)
                 ->whereDate('waktu_absen', $filterTanggal)
                 ->orderBy('tgl_entry', 'desc')
@@ -88,7 +90,7 @@ class AbsensiController extends Controller
      */
     public function detail(Request $request, $id_jadwal)
     {
-        // **PERBAIKAN 2:** Ambil tanggal dari URL/input (default hari ini)
+        // Ambil tanggal dari URL/input (default hari ini)
         $tanggalAbsen = $request->input('tanggal', date('Y-m-d'));
 
         // 1. Ambil data Jadwal Mapel
@@ -110,7 +112,6 @@ class AbsensiController extends Controller
             ->filter();
 
         // 4. Ambil data Absensi yang sudah tersimpan untuk jadwal pada $tanggalAbsen
-        // **PERBAIKAN 3:** Absensi dicari berdasarkan $tanggalAbsen dari request
         $absensiTersimpan = Absensi::where('jadwal_mapel_id', $id_jadwal)
             ->whereDate('waktu_absen', $tanggalAbsen)
             ->get()
@@ -178,7 +179,7 @@ class AbsensiController extends Controller
                     'id_siswa' => $data['id_siswa'],
                     'jadwal_mapel_id' => $id_jadwal,
                     'status' => $data['status'],
-                    // **PERBAIKAN 5:** Menggunakan tanggal yang diambil dari form
+                    // Menggunakan tanggal yang diambil dari form
                     'waktu_absen' => $tanggalAbsen,
                     'keterangan' => $keterangan,
                     'user_entry' => $user->guru->id_guru,

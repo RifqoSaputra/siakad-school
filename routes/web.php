@@ -3,30 +3,49 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PengumumanNotificationController;
 
 use App\Http\Controllers\Admin\ManajemenSiswaController;
 use App\Http\Controllers\Admin\ManajemenGuruController;
+use App\Http\Controllers\Admin\MapelController;
+use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\NilaiHarianSiswaController;
+use App\Http\Controllers\Admin\NilaiUjianSiswaController;
+use App\Http\Controllers\Admin\LaporanRaporController;
+use App\Http\Controllers\Admin\PengumumanController;
 
 use App\Http\Controllers\Guru\AbsensiController;
 use App\Http\Controllers\Ortu\SiswaController;
 use App\Http\Controllers\Guru\InputNilaiHarianController;
 use App\Http\Controllers\Guru\InputNilaiUjianController;
+use App\Http\Controllers\Guru\CatatanSiswaController;
 
 use App\Http\Controllers\Ortu\JadwalController;
-use App\Http\Controllers\Ortu\CekAbsenController; // <-- BARU
+use App\Http\Controllers\Ortu\CekAbsenController;
 use App\Http\Controllers\Ortu\NilaiSiswaController;
-
+use App\Http\Controllers\Ortu\InfoAnakController;
+use App\Http\Controllers\Ortu\RaporSiswaController;
 
 // --- 1. Rute Halaman Login & Proses Login ---
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+
+// (opsional) Kalau mau punya /login juga sebagai alias:
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login.page');
-Route::post('/login', [LoginController::class, 'login'])->name('login.action');
+
+// Proses login
+Route::post('/login', [LoginController::class, 'login'])->name('login.process');
+
+// Logout
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::prefix('notifikasi/pengumuman')->as('pengumuman.notif.')->group(function () {
+    Route::get('/', [PengumumanNotificationController::class, 'index'])->name('index');
+    Route::post('/{id}/read', [PengumumanNotificationController::class, 'markAsRead'])->name('read');
+    Route::post('/read-all', [PengumumanNotificationController::class, 'markAllAsRead'])->name('readAll');
+});
 
 // Rute yang memerlukan autentikasi
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
     // Dashboard & Profil (Akses Universal)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/profile', function () {
@@ -36,15 +55,39 @@ Route::middleware('auth')->group(function () {
     // --- RUTE ADMIN ---
     Route::prefix('admin')->middleware('role:Admin')->group(function () {
         // Rute Manajemen Guru dan Siswa
-        Route::get('guru', [ManajemenGuruController::class, 'index'])->name('admin.guru');
-        Route::get('siswa', [ManajemenSiswaController::class, 'index'])->name('admin.siswa');
+        Route::get('/guru', [ManajemenGuruController::class, 'index'])->name('admin.guru');
+        Route::get('/siswa', [ManajemenSiswaController::class, 'index'])->name('admin.siswa');
+        Route::get('/mapel', [MapelController::class, 'index'])->name('admin.mapel');
+        Route::get('/kelas', [KelasController::class, 'index'])->name('admin.kelas');
 
+        // Rute untuk Nilai Harian dan Ujian (TETAP DI SINI)
         Route::group(['prefix' => 'nilai', 'as' => 'admin.nilai.'], function () {
             Route::get('harian', [NilaiHarianSiswaController::class, 'index'])->name('harian');
+            Route::get('ujian', [NilaiUjianSiswaController::class, 'index'])->name('ujian');
+        });
 
-            Route::get('ujian', function () {
-                return view('dashboard.admin.nilai-siswa.nilai-ujian-siswa');
-            })->name('ujian');
+        Route::prefix('laporan')->name('admin.laporan.')->group(function () {
+            Route::get('rapor', [LaporanRaporController::class, 'index'])->name('rapor.index');
+
+            // BARU: Mengganti 'validateLock' dan 'rapor.validate-lock'
+            Route::post('rapor/validate-submit', [LaporanRaporController::class, 'validateSubmit'])->name('rapor.validate-submit');
+
+            // BARU: Mengganti 'finalLock' dan 'rapor.final-lock'
+            Route::post('rapor/final-submit', [LaporanRaporController::class, 'finalSubmit'])->name('rapor.final-submit');
+
+            Route::post('rapor/reset/{id}', [LaporanRaporController::class, 'reset'])->name('rapor.reset');
+
+            // Rute untuk download (sudah benar)
+            Route::get('rapor/download', [LaporanRaporController::class, 'download'])->name('rapor.download');
+        });
+
+        Route::prefix('pengumuman')->as('admin.pengumuman.')->group(function () {
+            Route::get('/', [PengumumanController::class, 'index'])->name('index');     
+            Route::get('/create', [PengumumanController::class, 'create'])->name('create');
+            Route::post('/', [PengumumanController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [PengumumanController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [PengumumanController::class, 'update'])->name('update');
+            Route::delete('/{id}', [PengumumanController::class, 'destroy'])->name('destroy');
         });
     });
 
@@ -77,24 +120,22 @@ Route::middleware('auth')->group(function () {
         Route::get('absensi/kelas', [AbsensiController::class, 'index'])->name('guru.absensi.kelas');
         Route::get('absensi/kelas/detail/{id_jadwal}', [AbsensiController::class, 'detail'])->name('guru.absensi.detail');
         Route::post('absensi/kelas/store/{id_jadwal}', [AbsensiController::class, 'store'])->name('guru.absensi.store');
+
+        Route::group(['prefix' => 'rapor', 'as' => 'guru.rapor.'], function () {
+            Route::get('walikelas', [CatatanSiswaController::class, 'index'])->name('walikelas');
+            Route::post('walikelas/store', [CatatanSiswaController::class, 'store'])->name('walikelas.store'); // Simpan Catatan
+            Route::post('walikelas/lock', [CatatanSiswaController::class, 'lockFinal'])->name('walikelas.lock'); // Kunci Final (AJAX)
+        });
     });
 
     // --- RUTE ORANG TUA (Grup dengan Prefix 'ortu') ---
-    // URL akan menjadi /ortu/info-anak, /ortu/rapor, dsb.
     Route::prefix('ortu')->middleware('role:Orang Tua')->group(function () {
         // Route untuk memilih siswa aktif (yang dipanggil dari dropdown)
         Route::get('select/{id_siswa}', [SiswaController::class, 'selectSiswa'])->name('siswa.select');
         Route::get('jadwal', [JadwalController::class, 'index'])->name('ortu.jadwal');
         Route::get('absensi', [CekAbsenController::class, 'index'])->name('ortu.absensi'); // <-- BARU
-        Route::get('info-anak', function () {
-            return view('ortu.info-anak.index');
-        })->name('ortu.info-anak');
-
-        // ROUTE RAPOR TELAH DIMODIFIKASI AGAR LANGSUNG MERETURN VIEW BLADE
-        Route::get('rapor', function () {
-            // Mengarahkan langsung ke views/dashboard/ortu/rapor-siswa.blade.php
-            return view('dashboard.ortu.rapor-siswa');
-        })->name('ortu.rapor');
+        Route::get('info-anak', [InfoAnakController::class, 'index'])->name('ortu.info-anak');
+        Route::get('rapor', [RaporSiswaController::class, 'index'])->name('ortu.rapor');
 
         Route::group(['prefix' => 'nilai-siswa', 'as' => 'ortu.nilai-siswa.'], function () {
             Route::get('/harian', [NilaiSiswaController::class, 'nilaiHarian'])->name('harian');

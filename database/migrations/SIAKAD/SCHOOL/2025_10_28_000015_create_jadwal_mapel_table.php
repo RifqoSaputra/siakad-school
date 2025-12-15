@@ -12,11 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('jadwal_mapel', function (Blueprint $table) {
-            $table->increments('jadwal_mapel_id'); // Primary Key (Otomatis Index)
+            $table->increments('jadwal_mapel_id'); // Primary Key
             $table->unsignedInteger('guru_mapel_id'); // Foreign Key
             $table->unsignedInteger('kelas_id'); // Foreign Key
             $table->unsignedInteger('ruangan_id'); // Foreign Key
-            $table->date('tanggal_jadwal'); // Kolom baru untuk tanggal spesifik
+
+            // Kolom Wajib untuk Filtering Laporan/Absensi
+            $table->string('tahun_ajaran', 9); // e.g., '2025/2026'
+
+            // Kolom Wajib untuk Mendefinisikan Template Mingguan
+            $table->string('hari', 10); // e.g., 'SENIN', 'SELASA'
 
             $table->time('jam_mulai');
             $table->time('jam_selesai');
@@ -33,12 +38,9 @@ return new class extends Migration
             $table->foreign('kelas_id')->references('kelas_id')->on('kelas')->onDelete('cascade');
             $table->foreign('ruangan_id')->references('ruangan_id')->on('ruangan')->onDelete('restrict');
 
-            $table->index('guru_mapel_id');
-            $table->index('kelas_id'); // Sangat penting untuk melihat jadwal per kelas
-            $table->index('ruangan_id');
-
-            $table->index('tanggal_jadwal');
-            $table->index(['kelas_id', 'tanggal_jadwal']); // Index gabungan baru
+            // Index gabungan krusial untuk kecepatan:
+            $table->index(['kelas_id', 'tahun_ajaran', 'hari']);
+            $table->index(['guru_mapel_id', 'tahun_ajaran', 'hari']); // Opsi tambahan jika guru sering melihat jadwal mereka
         });
     }
 

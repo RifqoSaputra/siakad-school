@@ -25,7 +25,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
                         <select name="semester" id="semester" class="mt-1 block w-full py-2 px-3 border rounded-md">
                             <option value="Ganjil" {{ $semester == 'Ganjil' ? 'selected' : '' }}>Ganjil</option>
-                            <option value="Genap" {{ $semester == 'Genap' : 'selected' : '' }}>Genap</option>
+                            <option value="Genap" {{ $semester == 'Genap' ? 'selected' : '' }}>Genap</option>
                         </select>
                     </div>
 

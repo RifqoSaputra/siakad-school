@@ -28,16 +28,13 @@
             </div>
         @endif
 
-        {{-- Formulir Filter (Hanya Tingkat Kelas) --}}
+        {{-- Formulir Filter (Hanya Tingkat Kelas) tetap sama --}}
         <form action="{{ route('ortu.jadwal') }}" method="GET" class="mb-4 p-3 border rounded bg-light">
             <div class="row g-3 align-items-end">
-
-                {{-- Filter Tingkat Kelas (Tingkat yang pernah/sedang diambil siswa) --}}
                 <div class="col-md-5">
                     <label for="tingkat_kelas" class="form-label">Filter Tingkat Kelas</label>
                     <select name="tingkat_kelas" id="tingkat_kelas" class="form-select">
                         <option value="">Pilih Tingkat Kelas</option>
-                        {{-- HANYA menampilkan tingkat kelas yang pernah/sedang diikuti siswa --}}
                         @foreach ($semuaTingkatKelas as $tingkat => $val)
                             <option value="{{ $tingkat }}" {{ $tingkat == $selectedTingkatKelas ? 'selected' : '' }}>
                                 Kelas {{ $tingkat }}
@@ -45,43 +42,55 @@
                         @endforeach
                     </select>
                 </div>
-
-                {{-- Tombol Tampilkan --}}
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-search me-1"></i> Tampilkan
                     </button>
                 </div>
-
-                {{-- Kolom Kosong untuk meratakan tampilan --}}
                 <div class="col-md-5"></div>
             </div>
         </form>
         {{-- End Formulir Filter --}}
 
         @php
-            // Urutan hari yang ingin ditampilkan (Senin-Jumat)
-            $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+            $days = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT'];
         @endphp
 
-        {{-- Navigasi Tab Hari dan Konten Jadwal TETAP SAMA --}}
+        {{-- Navigasi Tab Hari --}}
         <ul class="nav nav-tabs mb-3" id="jadwalTab" role="tablist">
-            @foreach ($days as $hari)
+            @foreach ($days as $hariKey)
+                @php
+                    // Pastikan hari yang dikirim ke Controller (hariIni) formatnya sama (Awal Kapital)
+                    $hariLower = strtolower($hariKey);
+                @endphp
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link {{ $hariIni == $hari ? 'active' : '' }}" id="{{ strtolower($hari) }}-tab"
-                        data-bs-toggle="tab" data-bs-target="#{{ strtolower($hari) }}-content" type="button"
-                        role="tab" aria-controls="{{ strtolower($hari) }}"
-                        aria-selected="{{ $hariIni == $hari ? 'true' : 'false' }}">
-                        {{ $hari }}
+                    {{-- $hariIni dikirim dari Controller sebagai 'Senin', 'Selasa', dst. --}}
+                    <button class="nav-link {{ $hariIni == $hariKey ? 'active' : '' }}" id="{{ $hariLower }}-tab"
+                        data-bs-toggle="tab" data-bs-target="#{{ $hariLower }}-content" type="button" role="tab"
+                        aria-controls="{{ $hariLower }}" aria-selected="{{ $hariIni == $hariKey ? 'true' : 'false' }}">
+                        {{ $hariKey }} {{-- Tampilkan nama hari yang proper (Senin, Selasa, dst.) --}}
                     </button>
                 </li>
             @endforeach
         </ul>
 
         <div class="tab-content" id="jadwalTabContent">
-            @foreach ($days as $hari)
-                <div class="tab-pane fade {{ $hariIni == $hari ? 'show active' : '' }}"
-                    id="{{ strtolower($hari) }}-content" role="tabpanel" aria-labelledby="{{ strtolower($hari) }}-tab">
+            @foreach ($days as $hariKey)
+                @php
+                    $hariTampil = $hariKey;
+                    $hariLower = strtolower($hariKey);
+                @endphp
+                <div class="tab-pane fade {{ $hariIni == $hariKey ? 'show active' : '' }}"
+                    id="{{ $hariLower }}-content" role="tabpanel" aria-labelledby="{{ $hariLower }}-tab">
+
+                    @php
+                        // Ambil tanggal spesifik untuk Hari ini dari array yang dikirim Controller
+                        // Key $hariKey sekarang 'Senin', 'Selasa', dst.
+                        $currentDate = $tanggalMingguan[$hariKey] ?? null;
+                        $tanggalTampil = $currentDate
+                            ? \Carbon\Carbon::parse($currentDate)->translatedFormat('d M Y')
+                            : 'N/A';
+                    @endphp
 
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped align-middle">
@@ -96,11 +105,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($jadwalPerHari->get($hari, []) as $index => $jadwal)
+                                {{-- AKSES DATA MENGGUNAKAN KEY AWAL KAPITAL ($hariKey) --}}
+                                @forelse ($jadwalPerHari->get($hariKey, []) as $index => $jadwal)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($jadwal->tanggal_jadwal)->translatedFormat('d M Y') }}
-                                        </td>
+                                        {{-- NILAI TANGGAL DIAMBIL DARI $tanggalTampil YANG SUDAH DISET DI ATAS PER LOOP HARI --}}
+                                        <td>{{ $tanggalTampil }}</td>
                                         <td>{{ date('H:i', strtotime($jadwal->jam_mulai)) }} -
                                             {{ date('H:i', strtotime($jadwal->jam_selesai)) }}</td>
                                         <td>{{ $jadwal->penugasan->mapel->nama_mapel ?? 'N/A' }}</td>
@@ -110,7 +120,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="6" class="text-center">Tidak ada jadwal pelajaran di hari
-                                            {{ $hari }} pada minggu ini berdasarkan filter.</td>
+                                            {{ $hariTampil }} pada minggu ini berdasarkan filter.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
