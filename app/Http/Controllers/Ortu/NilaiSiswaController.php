@@ -62,6 +62,7 @@ class NilaiSiswaController extends Controller
                 ->get()
                 ->groupBy('mapel_id');
 
+
             foreach ($jadwalMapel as $jadwal) {
                 $penugasan = $jadwal->penugasan;
                 $mapelId   = $penugasan->mapel_id;
@@ -132,9 +133,13 @@ class NilaiSiswaController extends Controller
             ->where('mapel_id', $mapelId)
             ->where('tahun_ajaran', self::TAHUN_AJARAN)
             ->where('semester', $semester)
-            ->orderBy('tgl_entry', 'desc') // Biasanya user ingin lihat nilai terbaru paling atas
-            ->with(['nilaiSiswa' => fn($q) => $q->where('id_siswa', $idSiswa)])
+            ->where('status', 'Submitted') 
+            ->orderBy('tgl_entry', 'desc')
+            ->with([
+                'nilaiSiswa' => fn($q) => $q->where('id_siswa', $idSiswa)
+            ])
             ->get();
+
 
         $rows = $tasks->map(function ($tugas) {
             $nilaiObj = $tugas->nilaiSiswa->first();
@@ -206,8 +211,9 @@ class NilaiSiswaController extends Controller
         $masterUjian = NilaiUjian::where('kelas_id', $kelasId)
             ->where('tahun_ajaran', self::TAHUN_AJARAN)
             ->where('semester', $semester)
-            ->where('tipe_ujian', $jenisUjian) // Menggunakan 'tipe_ujian' sesuai model
-            ->pluck('id', 'mapel_id'); // Ambil id master ujian, di-key berdasarkan mapel_id
+            ->where('tipe_ujian', $jenisUjian)
+            ->where('status', 'Submitted') 
+            ->pluck('id', 'mapel_id');
 
         // B. Jika ada Master Ujian, ambil Nilai Siswa yang terkait
         if ($masterUjian->isNotEmpty()) {

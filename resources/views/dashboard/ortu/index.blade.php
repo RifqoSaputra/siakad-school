@@ -25,19 +25,26 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="bg-indigo-50 p-4 rounded-lg border">
                         <p class="text-sm text-gray-600">Nama Siswa</p>
-                        <p class="font-bold text-indigo-700">Ahmad Fauzan</p>
+                        <p class="font-bold text-indigo-700">{{ $siswa->nama }}</p>
                     </div>
+
                     <div class="bg-green-50 p-4 rounded-lg border">
                         <p class="text-sm text-gray-600">NIS</p>
-                        <p class="font-bold text-green-700">20231234</p>
+                        <p class="font-bold text-green-700">{{ $siswa->nis }}</p>
                     </div>
+
                     <div class="bg-yellow-50 p-4 rounded-lg border">
                         <p class="text-sm text-gray-600">Kelas</p>
-                        <p class="font-bold text-yellow-700">10 DKV-1</p>
+                        <p class="font-bold text-yellow-700">
+                            {{ optional($kelasAktif)->kelas?->nama_kelas_lengkap ?? '-' }}
+                        </p>
                     </div>
+
                     <div class="bg-purple-50 p-4 rounded-lg border">
                         <p class="text-sm text-gray-600">Wali Kelas</p>
-                        <p class="font-bold text-purple-700">Bu Rina Puspita</p>
+                        <p class="font-bold text-purple-700">
+                            {{ optional($kelasAktif)->kelas?->waliKelas?->nama_guru ?? '-' }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -57,15 +64,6 @@
                             Toggle
                         </button>
                     </div>
-
-                    @php
-                        $kehadiran = [
-                            'Hadir' => ['jumlah' => 34, 'persen' => 94, 'warna' => 'bg-green-500'],
-                            'Sakit' => ['jumlah' => 1, 'persen' => 3, 'warna' => 'bg-yellow-500'],
-                            'Izin' => ['jumlah' => 1, 'persen' => 3, 'warna' => 'bg-blue-500'],
-                            'Tidak Hadir' => ['jumlah' => 0, 'persen' => 0, 'warna' => 'bg-red-500'],
-                        ];
-                    @endphp
 
                     <div class="space-y-3" id="kehadiran-container" data-mode="jumlah">
                         @foreach ($kehadiran as $label => $data)
@@ -93,18 +91,20 @@
                     <div class="space-y-4">
                         <div>
                             <p class="text-sm mb-1">Semester Ganjil</p>
-                            <div class="w-full bg-gray-200 h-4 rounded-full">
-                                <div class="bg-indigo-600 h-4 rounded-full" style="width: 82.5%"></div>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Rata-rata: 82.5</p>
-                        </div>
-
-                        <div>
-                            <p class="text-sm mb-1">Semester Genap</p>
-                            <div class="w-full bg-gray-200 h-4 rounded-full">
-                                <div class="bg-gray-400 h-4 rounded-full" style="width: 0%"></div>
-                            </div>
-                            <p class="text-xs text-gray-400 mt-1">Belum tersedia</p>
+                            @if ($rataNilai !== null)
+                                <div class="w-full bg-gray-200 h-4 rounded-full">
+                                    <div class="bg-indigo-600 h-4 rounded-full" style="width: {{ min(100, $rataNilai) }}%">
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Rata-rata: {{ number_format($rataNilai, 2) }}
+                                </p>
+                            @else
+                                <div class="w-full bg-gray-100 h-4 rounded-full"></div>
+                                <p class="text-xs text-gray-400 mt-1 italic">
+                                    Rapor belum diterbitkan
+                                </p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -129,16 +129,25 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="border-t">
-                                <td class="px-3 py-2">14 Des 2025</td>
-                                <td class="px-3 py-2 text-green-600 font-semibold">Hadir</td>
-                                <td class="px-3 py-2">-</td>
-                            </tr>
-                            <tr class="border-t">
-                                <td class="px-3 py-2">13 Des 2025</td>
-                                <td class="px-3 py-2 text-yellow-600 font-semibold">Sakit</td>
-                                <td class="px-3 py-2">Demam</td>
-                            </tr>
+                            @forelse ($kehadiranTerbaru as $absen)
+                                <tr class="border-t">
+                                    <td class="px-3 py-2">
+                                        {{ \Carbon\Carbon::parse($absen->waktu_absen)->translatedFormat('d M Y') }}
+                                    </td>
+                                    <td class="px-3 py-2 font-semibold">
+                                        {{ $absen->status }}
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        {{ $absen->keterangan ?? '-' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-3 py-4 text-center text-gray-500">
+                                        Tidak ada data kehadiran
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -151,25 +160,21 @@
                     </h2>
 
                     <ul class="space-y-4">
-                        <li class="border-l-4 border-indigo-500 pl-4">
-                            <div class="flex justify-between">
-                                <p class="font-semibold">Pembagian Rapor Semester Ganjil</p>
-                                <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
-                                    Belum Dibaca
-                                </span>
-                            </div>
-                            <p class="text-sm text-gray-500">6 hari lalu</p>
-                        </li>
-
-                        <li class="border-l-4 border-green-500 pl-4">
-                            <div class="flex justify-between">
-                                <p class="font-semibold">Libur Akhir Semester</p>
-                                <span class="text-xs px-2 py-1 rounded bg-gray-200 text-gray-600">
-                                    Sudah Dibaca
-                                </span>
-                            </div>
-                            <p class="text-sm text-gray-500">2 minggu lalu</p>
-                        </li>
+                        @foreach ($pengumuman as $item)
+                            <li class="border-l-4 {{ $item->is_read ? 'border-gray-400' : 'border-indigo-500' }} pl-4">
+                                <div class="flex justify-between">
+                                    <p class="font-semibold">{{ $item->judul }}</p>
+                                    <span
+                                        class="text-xs px-2 py-1 rounded
+                                    {{ $item->is_read ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700' }}">
+                                        {{ $item->is_read ? 'Sudah Dibaca' : 'Belum Dibaca' }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-500">
+                                    {{ \Carbon\Carbon::parse($item->created_at)->diffForHumans() }}
+                                </p>
+                            </li>
+                        @endforeach
                     </ul>
                 </div>
             </div>
