@@ -18,8 +18,9 @@ class PengumumanSeeder extends Seeder
                 'judul' => 'Rapat Koordinasi Guru',
                 'isi_pengumuman' => 'Seluruh guru diminta hadir rapat koordinasi pada Jumat, pukul 14.00 di ruang rapat utama.',
                 'target_role' => 'guru',
-                'status' => 'published',
+                'status' => 'dikirim',
                 'id_admin' => 1,
+                'created_by' => 1,
                 'created_at' => $now->copy()->subDays(5),
                 'updated_at' => $now->copy()->subDays(5),
             ],
@@ -27,9 +28,10 @@ class PengumumanSeeder extends Seeder
                 'id_pengumuman' => 2,
                 'judul' => 'Libur Awal Semester',
                 'isi_pengumuman' => 'Sekolah akan libur pada 20-22 Desember untuk persiapan awal semester. Tetap pantau jadwal terbaru.',
-                'target_role' => 'all',
-                'status' => 'published',
+                'target_role' => 'semua',
+                'status' => 'dikirim',
                 'id_admin' => 1,
+                'created_by' => 1,
                 'created_at' => $now->copy()->subDays(3),
                 'updated_at' => $now->copy()->subDays(3),
             ],
@@ -38,8 +40,9 @@ class PengumumanSeeder extends Seeder
                 'judul' => 'Pengambilan Rapor',
                 'isi_pengumuman' => 'Orang tua diundang mengambil rapor siswa pada Sabtu, 10.00-13.00 di ruang kelas masing-masing.',
                 'target_role' => 'ortu',
-                'status' => 'published',
+                'status' => 'dikirim',
                 'id_admin' => 2,
+                'created_by' => 2,
                 'created_at' => $now->copy()->subDay(),
                 'updated_at' => $now->copy()->subDay(),
             ],
@@ -75,10 +78,9 @@ class PengumumanSeeder extends Seeder
     private function getUserIdsForTarget(string $targetRole): array
     {
         $roleMap = [
-            'admin' => ['Admin'],
             'guru' => ['Guru'],
             'ortu' => ['Orang Tua'],
-            'all' => ['Admin', 'Guru', 'Orang Tua'],
+            'semua' => ['Admin', 'Guru', 'Orang Tua'],
         ];
 
         $roles = $roleMap[$targetRole] ?? [];

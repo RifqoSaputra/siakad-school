@@ -2,45 +2,45 @@
 
 @section('title', 'Data Kelas')
 
+@push('styles')
+    @vite(['resources/css/announcement.css'])
+@endpush
+
+@push('scripts')
+    @vite(['resources/js/announcement.js'])
+@endpush
+
 @section('content')
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Data Kelas</h1>
-
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Kelas</h6>
+<div class="ann-layout ann-layout--kelas">
+    <div class="ann-bar ann-bar--stack">
+        <div>
+            <h4 class="ann-title mb-1">Data Kelas</h4>
+            <p class="text-muted mb-0">Daftar kelas, tingkat, tahun ajaran, dan wali kelas.</p>
         </div>
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Tingkat</th>
-                        <th>Nama Kelas</th>
-                        <th>Tahun Ajaran</th>
-                        <th>Semester</th>
-                        <th>Wali Kelas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($kelas as $i => $k)
-                        <tr>
-                            <td>{{ $i + 1 }}</td>
-                            <td>{{ $k->tingkat_kelas }}</td>
-                            <td>{{ $k->nama_kelas }}</td>
-                            <td>{{ $k->tahun_ajaran }}</td>
-                            <td>{{ $k->semester }}</td>
+    </div>
 
-                            {{-- walikelas berisi ID guru, jadi tampilkan langsung dulu --}}
-                            <td>{{ $k->walikelas ?? '-' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center">Belum ada data kelas</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <div class="ann-table ann-table--kelas">
+        <div class="ann-table__head">
+            <div>No.</div>
+            <div>Tingkat</div>
+            <div>Nama Kelas</div>
+            <div>Tahun Ajaran</div>
+            <div>Semester</div>
+            <div>Wali Kelas</div>
+        </div>
+        <div class="ann-table__body">
+            @forelse ($kelas as $i => $k)
+                <div class="ann-row">
+                    <div class="cell">{{ $i + 1 }}</div>
+                    <div class="cell">{{ $k->tingkat_kelas }}</div>
+                    <div class="cell ann-row__title">{{ $k->nama_kelas }}</div>
+                    <div class="cell">{{ $k->tahun_ajaran }}</div>
+                    <div class="cell">{{ $k->semester }}</div>
+                    <div class="cell">{{ $k->walikelas ?? '-' }}</div>
+                </div>
+            @empty
+                <div class="ann-empty">Belum ada data kelas.</div>
+            @endforelse
         </div>
     </div>
 </div>

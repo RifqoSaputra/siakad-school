@@ -2,199 +2,207 @@
 
 @section('title', 'Manajemen Guru')
 
+@push('styles')
+    @vite(['resources/css/announcement.css'])
+@endpush
+
+@push('scripts')
+    @vite(['resources/js/announcement.js'])
+@endpush
+
 @section('content')
-    <div class="container-fluid">
-        {{-- ======================================================= --}}
-        {{-- 1. CARD RINGKASAN DATA (Dipertahankan) --}}
-        {{-- ======================================================= --}}
-        <div class="row mb-2">
-            {{-- Card Total Guru Aktif (4 kolom) --}}
-            <div class="col-md-4 mb-4 pr-3">
-                <div class="card card-body shadow-sm border-left-primary p-4">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="font-weight-bold text-primary text-uppercase mb-2" style="font-size: 0.8rem;">
-                                Total Guru Aktif
-                            </div>
-                            <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $totalGuruAktif ?? 0 }} Guru</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-person-check-fill fa-3x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    @php
+        $hasFilters = $request->filled('search') || $request->filled('status') || $request->filled('status_kepegawaian');
+        $firstItem = $guruData->firstItem();
+        $lastItem = $guruData->lastItem();
+        $totalItems = $guruData->total() ?? 0;
+        $rangeText = ($firstItem && $lastItem) ? "{$firstItem}–{$lastItem}" : '0';
+        $totalAktif = $totalGuruAktif ?? 0;
+        $totalSemua = $totalGuru ?? 0;
+        $totalPns = $totalGuruPNS ?? 0;
+        $totalNonaktif = max($totalSemua - $totalAktif, 0);
+        $totalNonPns = max($totalSemua - $totalPns, 0);
+        $statusMap = [
+            'aktif' => ['label' => 'Aktif', 'icon' => 'check_circle', 'class' => 'ann-status--active'],
+            'nonaktif' => ['label' => 'Nonaktif', 'icon' => 'error', 'class' => 'ann-status--inactive'],
+        ];
+        $summaryCards = [
+            [
+                'title' => 'Total Seluruh Guru',
+                'icon' => 'group',
+                'primary' => $totalSemua,
+                'meta' => [
+                    ['label' => 'Aktif', 'value' => $totalAktif],
+                    ['label' => 'Nonaktif', 'value' => $totalNonaktif],
+                ],
+            ],
+            [
+                'title' => 'Guru Aktif',
+                'icon' => 'verified',
+                'primary' => $totalAktif,
+                'meta' => [
+                    ['label' => 'PNS', 'value' => $totalPns],
+                    ['label' => 'Non PNS', 'value' => $totalNonPns],
+                ],
+            ],
+            [
+                'title' => 'Guru PNS',
+                'icon' => 'workspace_premium',
+                'primary' => $totalPns,
+                'meta' => [
+                    ['label' => 'Total', 'value' => $totalSemua],
+                    ['label' => 'Non PNS', 'value' => $totalNonPns],
+                ],
+            ],
+        ];
+    @endphp
 
-            {{-- Card Total Semua Guru (4 kolom) --}}
-            <div class="col-md-4 mb-4 pr-3">
-                <div class="card card-body shadow-sm border-left-info p-4">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="font-weight-bold text-info text-uppercase mb-2" style="font-size: 0.8rem;">
-                                Total Semua Guru
-                            </div>
-                            <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $totalGuru ?? 0 }} Guru</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-person-fill fa-3x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Card Total Guru PNS (4 kolom) --}}
-            <div class="col-md-4 mb-4">
-                <div class="card card-body shadow-sm border-left-warning p-4">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="font-weight-bold text-warning text-uppercase mb-2" style="font-size: 0.8rem;">
-                                Guru Aktif Status PNS
-                            </div>
-                            <div class="h3 mb-0 font-weight-bold text-gray-800">{{ $totalGuruPNS ?? 0 }} Guru</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bi bi-award-fill fa-3x text-gray-300"></i>
+    <div class="ann-layout ann-layout--guru">
+        <div class="ann-summary-grid">
+            @foreach ($summaryCards as $card)
+                <div class="ann-summary-card ann-summary-card--stat ann-summary-card--with-meta">
+                    <div class="ann-summary-card__icon ann-summary-card__icon--subtle material-symbols-rounded">{{ $card['icon'] }}</div>
+                    <div class="ann-summary-card__body">
+                        <div class="ann-summary-card__label">{{ $card['title'] }}</div>
+                        <div class="ann-summary-card__value ann-summary-card__value--xl">{{ $card['primary'] }}</div>
+                        <div class="ann-summary-card__divider"></div>
+                        <div class="ann-summary-card__meta">
+                            @foreach ($card['meta'] as $meta)
+                                <div class="ann-summary-card__meta-item">
+                                    <div class="ann-summary-card__meta-label">{{ $meta['label'] }}</div>
+                                    <div class="ann-summary-card__meta-value">{{ $meta['value'] }}</div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
-            </div>
+            @endforeach
         </div>
-        <br>
 
-        {{-- ======================================================== --}}
-        {{-- 2. BARIS FILTER DAN TOMBOL AKSI (Diratakan: 3 filter + 1 tombol submit) --}}
-        {{-- ======================================================== --}}
-        <form method="GET" action="{{ route('admin.guru') }}">
-            <div class="row mb-2 align-items-end"> {{-- Gunakan align-items-end agar input rata bawah dengan tombol --}}
-
-                {{-- Cari Nama/NIP (Porsi lebih besar: 4/12) --}}
-                <div class="col-md-4 col-sm-12 mb-3">
-                    <label for="search_guru" class="form-label font-weight-bold">Cari Nama atau NIP</label>
-                    <input type="text" name="search" id="search_guru" class="form-control"
-                        placeholder="Masukkan kata kunci..." value="{{ $request->get('search') }}">
+        <form method="GET" action="{{ route('admin.guru') }}" class="ann-toolbar__row ann-toolbar__standalone ann-toolbar--inline">
+            <input type="hidden" name="status" value="{{ $request->get('status') }}">
+            <input type="hidden" name="status_kepegawaian" value="{{ $request->get('status_kepegawaian') }}">
+            <div class="ann-toolbar__chunk ann-toolbar__chunk--search">
+                <div class="ann-search__cluster">
+                    <div class="ann-search__field">
+                        <div class="ann-search__input">
+                            <span class="material-symbols-rounded">search</span>
+                            <input type="text" name="search" id="search_guru" placeholder="Ketik nama atau NIP"
+                                value="{{ $request->get('search') }}">
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                {{-- Filter Status Aktif/Nonaktif (Porsi 3/12) --}}
-                <div class="col-md-3 col-sm-6 mb-3">
-                    <label for="filter_status" class="form-label font-weight-bold">Status</label>
-                    <x-dropdown name="status" id="filter_status">
-                        <option value="">Semua Status</option>
-                        @foreach ($allStatus as $status)
-                            <option value="{{ $status }}" {{ $request->get('status') == $status ? 'selected' : '' }}>
-                                {{ $status }}
-                            </option>
-                        @endforeach
-                    </x-dropdown>
-                </div>
+            <div class="ann-toolbar__chunk ann-toolbar__chunk--filters">
+                <div class="ann-toolbar__filters">
+                    <div class="ann-filter" data-filter="status">
+                        <button type="button" class="ann-filter__btn">
+                            <span>{{ $request->get('status') ?: 'Status Aktif' }}</span>
+                            <span class="material-symbols-rounded">arrow_drop_down</span>
+                        </button>
+                        <div class="ann-filter__menu">
+                            <button type="button" class="ann-filter__option" data-value="">
+                                <span class="ann-radio {{ $request->filled('status') ? '' : 'active' }}"></span>Semua Status
+                            </button>
+                            @foreach ($allStatus as $status)
+                                <button type="button" class="ann-filter__option" data-value="{{ $status }}">
+                                    <span
+                                        class="ann-radio {{ $request->get('status') == $status ? 'active' : '' }}"></span>{{ $status }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
 
-                {{-- Filter Status Kepegawaian (Porsi 3/12) --}}
-                <div class="col-md-3 col-sm-6 mb-3">
-                    <label for="filter_kepegawaian" class="form-label font-weight-bold">Status Kepegawaian</label>
-                    <x-dropdown name="status_kepegawaian" id="filter_kepegawaian">
-                        <option value="">Semua Kepegawaian</option>
-                        @foreach ($allStatusKepegawaian as $sk)
-                            <option value="{{ $sk }}"
-                                {{ $request->get('status_kepegawaian') == $sk ? 'selected' : '' }}>
-                                {{ $sk }}
-                            </option>
-                        @endforeach
-                    </x-dropdown>
-                </div>
+                    <div class="ann-filter" data-filter="status_kepegawaian">
+                        <button type="button" class="ann-filter__btn">
+                            <span>{{ $request->get('status_kepegawaian') ?: 'Status Kepegawaian' }}</span>
+                            <span class="material-symbols-rounded">arrow_drop_down</span>
+                        </button>
+                        <div class="ann-filter__menu">
+                            <button type="button" class="ann-filter__option" data-value="">
+                                <span
+                                    class="ann-radio {{ $request->filled('status_kepegawaian') ? '' : 'active' }}"></span>Semua Kepegawaian
+                            </button>
+                            @foreach ($allStatusKepegawaian as $sk)
+                                <button type="button" class="ann-filter__option" data-value="{{ $sk }}">
+                                    <span
+                                        class="ann-radio {{ $request->get('status_kepegawaian') == $sk ? 'active' : '' }}"></span>{{ $sk }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
 
-                {{-- Tombol Terapkan Filter (Porsi 2/12) --}}
-                <div class="col-md-2 col-sm-12 mb-3">
-                    {{-- Kosongkan label, nanti tombol akan rata dengan input/dropdown di atasnya --}}
-                    <label class="form-label font-weight-bold d-none d-md-block" style="visibility: hidden;">Aksi</label>
-                    <button type="submit" class="btn btn-primary rounded-pill w-100">
-                        <i class="bi bi-funnel-fill"></i> Terapkan
+                    <button type="button" class="ann-reset {{ $hasFilters ? 'show' : '' }}" id="filter-reset">
+                        <span class="material-symbols-rounded">refresh</span>
+                        Reset
                     </button>
+                </div>
+            </div>
+
+            <div class="ann-toolbar__chunk ann-toolbar__chunk--pagination">
+                <div class="ann-pagination ann-pagination--inline ann-pagination--right">
+                    <span class="ann-pagination__text">
+                        <span class="ann-pagination__label">Menampilkan</span>
+                        <span class="ann-pagination__current">{{ $rangeText }}</span>
+                        <span class="ann-pagination__total">dari {{ $totalItems }}</span>
+                    </span>
+                    <div class="ann-pagination__arrows">
+                        <button class="ann-icon-btn" data-nav-url="{{ $guruData->previousPageUrl() }}"
+                            @disabled(!$guruData->previousPageUrl())>
+                            <span class="material-symbols-rounded">chevron_left</span>
+                        </button>
+                        <button class="ann-icon-btn" data-nav-url="{{ $guruData->nextPageUrl() }}"
+                            @disabled(!$guruData->nextPageUrl())>
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
 
-        {{-- ======================================================== --}}
-        {{-- 3. BARIS TOMBOL UTAMA (Tambah dan Export) --}}
-        {{-- ======================================================== --}}
-        <div class="row mb-2">
-            <div class="col-12 text-right">
-                <button type="button" class="btn btn-success rounded-pill">
-                    <i class="bi bi-person-plus-fill"></i> Tambah Guru
-                </button>
-                <button type="button" class="btn btn-info rounded-pill ms-2 text-white">
-                    <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
-                </button>
+        <div class="ann-table ann-table--guru">
+            <div class="ann-table__head">
+                <div>Guru</div>
+                <div>NIP</div>
+                <div>Email</div>
+                <div>Nomor Telepon</div>
+                <div>Kepegawaian</div>
+                <div>Status</div>
+                <div>Domisili</div>
             </div>
-        </div>
-        <br>
-
-        {{-- ============================================= --}}
-        {{-- 4. WRAPPER TABEL DATA GURU (Tidak ada perubahan) --}}
-        {{-- ============================================= --}}
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Kelola data guru • {{ $guruData->total() }} guru</h6>
-            </div>
-            <div class="card-body">
-
-                <div class="table-responsive">
-                    <table class="table table-hover" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>NIP</th>
-                                <th>Nama</th>
-                                <th>Jenis Kelamin</th>
-                                <th>Status Kepegawaian</th>
-                                <th>Status Aktif</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($guruData as $index => $guru)
-                                <tr>
-                                {{-- Nomor urut --}}
-                                <td>{{ $guruData->firstItem() + $index }}</td>
-
-                                {{-- NIP --}}
-                                <td>{{ $guru->nip }}</td>
-
-                                {{-- Nama Guru (kolom di DB: nama_guru) --}}
-                                <td>{{ $guru->nama_guru }}</td>
-
-                                {{-- Email --}}
-                                <td>{{ $guru->email ?? '–' }}</td>
-
-                                {{-- No HP --}}
-                                <td>{{ $guru->no_hp ?? '–' }}</td>
-
-                                {{-- Kota / Alamat singkat --}}
-                                <td>{{ $guru->kota_rmh ?? '–' }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                <td colspan="6" class="text-center">Belum ada data guru</td>
-                                 </tr>
-                                @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- PAGINASI --}}
-                <div class="row align-items-center">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        Showing {{ $guruData->firstItem() }} to {{ $guruData->lastItem() }} of {{ $guruData->total() }}
-                        results
+            <div class="ann-table__body">
+                @forelse ($guruData as $guru)
+                    @php
+                        $statusValue = strtolower($guru->status ?? $guru->status_aktif ?? '');
+                        $statusMeta = $statusMap[$statusValue] ?? [
+                            'label' => $guru->status ?? $guru->status_aktif ?? 'Perlu verifikasi',
+                            'icon' => 'hourglass_empty',
+                            'class' => 'ann-status--pending',
+                        ];
+                    @endphp
+                    <div class="ann-row">
+                        <div class="cell ann-title-cell">
+                            <div class="ann-row__title">{{ $guru->nama_guru }}</div>
+                        </div>
+                        <div class="cell ann-meta__muted">{{ $guru->nip ?? 'NIP tidak tersedia' }}</div>
+                        <div class="cell ann-meta__muted">{{ $guru->email ?? 'Email belum diisi' }}</div>
+                        <div class="cell ann-meta__muted">{{ $guru->no_hp ?? 'No HP belum diisi' }}</div>
+                        <div class="cell cell--pill">
+                            <span class="ann-pill">{{ $guru->status_kepegawaian ?? '–' }}</span>
+                        </div>
+                        <div class="cell cell--status ann-status-cell">
+                            <span class="ann-status {{ $statusMeta['class'] }}">
+                                <span class="material-symbols-rounded">{{ $statusMeta['icon'] }}</span>
+                                {{ $statusMeta['label'] }}
+                            </span>
+                        </div>
+                        <div class="cell">{{ $guru->kota_rmh ?? '–' }}</div>
                     </div>
-                    <div class="col-md-6">
-                        @include('components.pagination', ['paginator' => $guruData])
-                    </div>
-                </div>
-
+                @empty
+                    <div class="ann-empty">Belum ada data guru.</div>
+                @endforelse
             </div>
         </div>
     </div>
 @endsection
-
-@push('scripts')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-@endpush

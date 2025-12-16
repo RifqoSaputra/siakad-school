@@ -2,44 +2,62 @@
 
 @section('title', 'Nilai Ujian Anak')
 
+@push('styles')
+    @vite(['resources/css/announcement.css'])
+@endpush
+
+@push('scripts')
+    @vite(['resources/js/announcement.js'])
+@endpush
+
 @section('content')
-    <script src="https://cdn.tailwindcss.com"></script>
+    @php
+        $kelasFull = $kelasFull ?? ($kelasList->firstWhere('kelas_id', $kelasId) ? ($kelasList->firstWhere('kelas_id', $kelasId)->kelas->tingkat_kelas ?? '') . ' ' . ($kelasList->firstWhere('kelas_id', $kelasId)->kelas->nama_kelas ?? '') : '-');
+    @endphp
 
-    {{-- 1. LOAD COMPONENT LOADING --}}
-    <div id="global-loading" class="hidden fixed inset-0 z-[100]">
-        @include('components.loading')
-    </div>
+    <div class="ann-layout ann-layout--ortu">
+        <div class="ann-bar ann-bar--stack">
+            <div class="ann-bar__left">
+                <h4 class="ann-title mb-1">Rekap Nilai Ujian ({{ $jenisUjian }})</h4>
+                <p class="text-muted mb-0">Pantau nilai PTS/PAS anak per mata pelajaran.</p>
+            </div>
+        </div>
 
-    {{-- NOTE: Tidak ada Modal Detail untuk Nilai Ujian --}}
+        @if (session('error'))
+            <div class="ann-section">
+                <div class="ann-error" style="display:block;">{{ session('error') }}</div>
+            </div>
+        @endif
 
-    <div class="p-6 md:p-10 bg-gray-50 min-h-screen">
-        <div class="container mx-auto max-w-screen-2xl">
-
-            <h1 class="text-3xl font-extrabold text-indigo-900 mb-8 border-l-8 border-indigo-500 pl-4">
-                Rekap Nilai Ujian ({{ $jenisUjian }}) {{-- Menggunakan variabel jenisUjian --}}
-            </h1>
-
-            @if (session('error'))
-                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r shadow-sm mb-6 flex items-start">
-                    <i class="fas fa-exclamation-circle mt-1 mr-3"></i>
-                    <span>{{ session('error') }}</span>
+        <div class="ann-summary-grid">
+            <div class="ann-summary-card ann-summary-card--stat">
+                <div class="ann-summary-card__top">
+                    <div class="ann-summary-card__label">Kelas</div>
+                    <span class="ann-summary-card__icon ann-summary-card__icon--subtle material-symbols-rounded">class</span>
                 </div>
-            @endif
+                <div class="ann-summary-card__value ann-summary-card__value--xl">{{ $kelasFull }}</div>
+                <div class="ann-summary-card__divider"></div>
+                <div class="ann-summary-card__meta">
+                    <div class="ann-summary-card__meta-item">
+                        <div class="ann-summary-card__meta-label">Semester</div>
+                        <div class="ann-summary-card__meta-value">{{ $semester ?? '-' }}</div>
+                    </div>
+                    <div class="ann-summary-card__meta-item">
+                        <div class="ann-summary-card__meta-label">Jenis Ujian</div>
+                        <div class="ann-summary-card__meta-value">{{ $jenisUjian ?? '-' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            {{-- ================= FILTER KELAS + SEMESTER + JENIS UJIAN ================= --}}
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
-                <form id="filter-form" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-
-                    {{-- Dropdown kelas (Lebar 4 col) --}}
-                    <div class="md:col-span-4">
-                        <label for="kelas_id" class="text-sm font-semibold text-gray-700 mb-2 block">Pilih Kelas</label>
-                        <select name="kelas_id" id="kelas_id"
-                            class="border border-gray-300 px-4 py-3 rounded-xl w-full focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 transition bg-gray-50">
+        <form id="filter-form" method="GET" class="ann-toolbar__row ann-toolbar__standalone ann-toolbar--inline" action="{{ route('ortu.nilai-siswa.ujian') }}">
+            <div class="ann-toolbar__chunk ann-toolbar__chunk--filters">
+                <div class="ann-toolbar__filters">
+                    <div class="ann-filter ann-filter--select">
+                        <label class="ann-field__label">Pilih Kelas</label>
+                        <select name="kelas_id" id="kelas_id" class="ann-input">
                             @foreach ($kelasList as $k)
-                                @php
-                                    $k_full_name =
-                                        ($k->kelas->tingkat_kelas ?? '') . ' ' . ($k->kelas->nama_kelas ?? '');
-                                @endphp
+                                @php $k_full_name = ($k->kelas->tingkat_kelas ?? '') . ' ' . ($k->kelas->nama_kelas ?? ''); @endphp
                                 <option value="{{ $k->kelas_id }}" {{ $kelasId == $k->kelas_id ? 'selected' : '' }}>
                                     {{ $k_full_name }}
                                 </option>
@@ -47,124 +65,70 @@
                         </select>
                     </div>
 
-                    {{-- Semester (Lebar 3 col) --}}
-                    <div class="md:col-span-3">
-                        <label for="semester" class="text-sm font-semibold text-gray-700 mb-2 block">Pilih Semester</label>
-                        <select name="semester" id="semester"
-                            class="border border-gray-300 px-4 py-3 rounded-xl w-full focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 transition bg-gray-50">
+                    <div class="ann-filter ann-filter--select">
+                        <label class="ann-field__label">Semester</label>
+                        <select name="semester" id="semester" class="ann-input">
                             <option value="Ganjil" {{ $semester == 'Ganjil' ? 'selected' : '' }}>Ganjil</option>
                             <option value="Genap" {{ $semester == 'Genap' ? 'selected' : '' }}>Genap</option>
                         </select>
                     </div>
 
-                    {{-- Jenis Ujian (PTS/PAS) - BARU (Lebar 3 col) --}}
-                    <div class="md:col-span-3">
-                        <label for="jenis_ujian" class="text-sm font-semibold text-gray-700 mb-2 block">Jenis Ujian</label>
-                        <select name="jenis_ujian" id="jenis_ujian"
-                            class="border border-gray-300 px-4 py-3 rounded-xl w-full focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 transition bg-gray-50">
-                            <option value="PTS" {{ $jenisUjian == 'PTS' ? 'selected' : '' }}>PTS (Tengah Semester)
-                            </option>
-                            <option value="PAS" {{ $jenisUjian == 'PAS' ? 'selected' : '' }}>PAS (Akhir Semester)
-                            </option>
+                    <div class="ann-filter ann-filter--select">
+                        <label class="ann-field__label">Jenis Ujian</label>
+                        <select name="jenis_ujian" id="jenis_ujian" class="ann-input">
+                            <option value="PTS" {{ $jenisUjian == 'PTS' ? 'selected' : '' }}>PTS (Tengah Semester)</option>
+                            <option value="PAS" {{ $jenisUjian == 'PAS' ? 'selected' : '' }}>PAS (Akhir Semester)</option>
                         </select>
                     </div>
-
-                    {{-- Button Terapkan (Lebar 2 col) --}}
-                    <div class="md:col-span-2">
-                        <button type="submit"
-                            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-indigo-200 transition duration-300 flex items-center justify-center gap-2">
-                            <i class="fas fa-filter"></i> Terapkan
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
 
-            {{-- ===================== TABEL NILAI ===================== --}}
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">
-                            Daftar Nilai {{ $jenisUjian }} {{-- Menggunakan variabel jenisUjian --}}
-                        </h3>
-                        <p class="text-xs text-gray-500 mt-1">Kelas: {{ $kelasFull }}</p>
-                    </div>
-                    <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">
-                        {{ $semester }}
-                    </span>
-                </div>
+            <div class="ann-toolbar__chunk ann-toolbar__chunk--pagination">
+                <button type="submit" class="ann-btn ann-btn--primary" style="width:auto; min-width:0;">
+                    Terapkan
+                </button>
+            </div>
+        </form>
 
-                @if (empty($rekap) || count($rekap) == 0)
-                    <div class="text-center py-16 px-6">
-                        <div class="bg-indigo-50 inline-block p-4 rounded-full mb-4">
-                            <i class="fas fa-file-alt text-3xl text-indigo-400"></i>
+        <div class="ann-section">
+            <div class="ann-table ann-table--nilai">
+                <div class="ann-table__head">
+                    <div>No</div>
+                    <div>Mata Pelajaran</div>
+                    <div>Guru Pengampu</div>
+                    <div>Nilai Akhir</div>
+                </div>
+                <div class="ann-table__body">
+                    @forelse ($rekap as $i => $m)
+                        @php
+                            $nilai = $m['nilai'];
+                            $nilaiClass = 'ann-status--pending';
+                            if (!is_null($nilai)) {
+                                if ($nilai < 70) $nilaiClass = 'ann-status--inactive';
+                                elseif ($nilai < 80) $nilaiClass = 'ann-status--pending';
+                                else $nilaiClass = 'ann-status--active';
+                            }
+                        @endphp
+                        <div class="ann-row">
+                            <div class="cell">{{ $i + 1 }}</div>
+                            <div class="cell ann-row__title">{{ $m['mapel'] }}</div>
+                            <div class="cell">{{ $m['guru'] }}</div>
+                            <div class="cell ann-status-cell">
+                                @if (is_null($nilai))
+                                    <span class="ann-meta__muted">Belum ada nilai</span>
+                                @else
+                                    <span class="ann-status {{ $nilaiClass }}">
+                                        <span class="material-symbols-rounded">verified</span>
+                                        {{ $nilai }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                        <h4 class="text-gray-800 font-bold text-lg mb-1">Data Belum Tersedia</h4>
-                        <p class="text-gray-500">Belum ada nilai ujian yang diinput untuk kriteria ini.</p>
-                    </div>
-                @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50 text-gray-500 font-medium">
-                                <tr>
-                                    <th class="px-6 py-4 text-center text-xs uppercase tracking-wider w-16">No</th>
-                                    <th class="px-6 py-4 text-left text-xs uppercase tracking-wider">Mata Pelajaran</th>
-                                    <th class="px-6 py-4 text-left text-xs uppercase tracking-wider hidden md:table-cell">
-                                        Guru Pengampu</th>
-                                    <th class="px-6 py-4 text-center text-xs uppercase tracking-wider w-32">Nilai Akhir</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach ($rekap as $i => $m)
-                                    @php
-                                        $nilai = $m['nilai'];
-                                        // Logic warna badge nilai
-                                        $badgeClass = 'bg-gray-100 text-gray-500';
-                                        if (!is_null($nilai)) {
-                                            if ($nilai < 70) {
-                                                $badgeClass = 'bg-red-100 text-red-700';
-                                            } elseif ($nilai < 80) {
-                                                $badgeClass = 'bg-yellow-100 text-yellow-800';
-                                            } else {
-                                                $badgeClass = 'bg-green-100 text-green-700';
-                                            }
-                                        }
-                                    @endphp
-                                    <tr class="hover:bg-indigo-50/50 transition duration-150">
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                            {{ $i + 1 }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-bold text-gray-900">{{ $m['mapel'] }}</div>
-                                            <div class="text-xs text-gray-500 md:hidden">{{ $m['guru'] }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
-                                            {{ $m['guru'] }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            @if (is_null($nilai))
-                                                <span class="text-sm text-gray-400 italic">Belum ada nilai</span>
-                                            @else
-                                                <span
-                                                    class="px-4 py-2 inline-flex text-base leading-5 font-extrabold rounded-lg {{ $badgeClass }}">
-                                                    {{ $nilai }}
-                                                </span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
+                    @empty
+                        <div class="ann-empty">Belum ada nilai ujian untuk filter ini.</div>
+                    @endforelse
+                </div>
             </div>
         </div>
     </div>
-
-    {{-- ===================== SCRIPT JAVASCRIPT ===================== --}}
-    <script>
-        // Script Loading Component saat Form Submit
-        // Tidak perlu script Modal karena tidak ada aksi detail
-        document.getElementById('filter-form').addEventListener('submit', function() {
-            // Tampilkan komponen loading
-            document.getElementById('global-loading').classList.remove('hidden');
-        });
-    </script>
 @endsection

@@ -44,12 +44,11 @@ class LoginController extends Controller
             // regenerate session supaya lebih aman
             $request->session()->regenerate();
 
-            /**
-             * 🔹 INI BAGIAN PENTING SOLUSI A
-             * Balikkan redirect ke /dashboard (seperti perilaku lama).
-             * Jika user sebelumnya menuju halaman lain, intended() akan mengarah ke sana.
-             */
-            return redirect()->intended('/dashboard');
+            $user = Auth::user();
+            $defaultRedirect = $this->redirectPathForRole($user);
+
+            // Jika user sebelumnya menuju halaman lain yang butuh login, intended() akan mengarah ke sana.
+            return redirect()->intended($defaultRedirect);
         }
 
         // 3. Jika gagal login
@@ -72,5 +71,26 @@ class LoginController extends Controller
 
         // kembali ke halaman login
         return redirect()->route('login');
+    }
+
+    /**
+     * Tentukan halaman awal sesuai role.
+     */
+    private function redirectPathForRole($user): string
+    {
+        if ($user && $user->hasRole('Admin')) {
+            return '/admin';
+        }
+
+        if ($user && $user->hasRole('Guru')) {
+            return '/guru';
+        }
+
+        if ($user && $user->hasRole('Orang Tua')) {
+            return '/ortu';
+        }
+
+        // fallback jika role tidak dikenali
+        return '/dashboard';
     }
 }

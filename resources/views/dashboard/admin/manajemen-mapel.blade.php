@@ -2,38 +2,39 @@
 
 @section('title', 'Data Mata Pelajaran')
 
-@section('content')
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Data Mata Pelajaran</h1>
+@push('styles')
+    @vite(['resources/css/announcement.css'])
+@endpush
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Mata Pelajaran</h6>
+@push('scripts')
+    @vite(['resources/js/announcement.js'])
+@endpush
+
+@section('content')
+<div class="ann-layout ann-layout--mapel">
+    <div class="ann-bar ann-bar--stack">
+        <div>
+            <h4 class="ann-title mb-1">Data Mata Pelajaran</h4>
+            <p class="text-muted mb-0">Daftar mata pelajaran yang tersedia.</p>
         </div>
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Kode Mapel</th>
-                        <th>Nama Mapel</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($mapel as $index => $m)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            {{-- SESUAIKAN nama kolom di tabel mapel --}}
-                            <td>{{ $m->kode_mapel ?? '-' }}</td>
-                            <td>{{ $m->nama_mapel ?? '-' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="text-center">Belum ada data mata pelajaran</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    </div>
+
+    <div class="ann-table ann-table--mapel">
+        <div class="ann-table__head">
+            <div>No.</div>
+            <div>Kode</div>
+            <div>Nama Mapel</div>
+        </div>
+        <div class="ann-table__body">
+            @forelse ($mapel as $index => $m)
+                <div class="ann-row">
+                    <div class="cell">{{ $index + 1 }}</div>
+                    <div class="cell">{{ $m->kode_mapel ?? '-' }}</div>
+                    <div class="cell ann-row__title">{{ $m->nama_mapel ?? '-' }}</div>
+                </div>
+            @empty
+                <div class="ann-empty">Belum ada data mata pelajaran.</div>
+            @endforelse
         </div>
     </div>
 </div>

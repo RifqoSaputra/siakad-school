@@ -2,52 +2,97 @@
 
 @section('title', 'Notifikasi Pengumuman')
 
+@push('styles')
+    @vite(['resources/css/announcement.css'])
+@endpush
+
+@push('scripts')
+    @vite(['resources/js/announcement.js'])
+@endpush
+
 @section('content')
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h4 class="mb-1">Notifikasi Pengumuman</h4>
+    @php
+        $firstItem = $notifications->firstItem();
+        $lastItem = $notifications->lastItem();
+        $totalItems = $notifications->total() ?? 0;
+        $rangeText = ($firstItem && $lastItem) ? "{$firstItem}–{$lastItem}" : '0';
+    @endphp
+
+    <div class="ann-layout ann-layout--notif">
+        <div class="ann-bar ann-bar--stack">
+            <div class="ann-bar__left">
+                <h4 class="ann-title mb-1">Notifikasi Pengumuman</h4>
                 <p class="text-muted mb-0">Semua notifikasi pengumuman yang pernah dikirim ke akun Anda.</p>
             </div>
-            <form action="{{ route('pengumuman.notif.readAll') }}" method="POST">
-                @csrf
-                <button class="btn btn-outline-primary">
-                    <i class="bi bi-check2-all"></i> Tandai semua sudah dibaca
-                </button>
-            </form>
+            <div class="ann-toolbar__actions">
+                <form action="{{ route('pengumuman.notif.readAll') }}" method="POST">
+                    @csrf
+                    <button class="ann-btn ann-btn--secondary" type="submit">
+                        Tandai semua dibaca <span class="material-symbols-rounded">done_all</span>
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <div class="list-group shadow-sm">
-            @forelse ($notifications as $notification)
-                <div class="list-group-item d-flex justify-content-between align-items-start {{ $notification->is_read ? '' : 'bg-light' }}">
-                    <div class="ms-2 me-auto">
-                        <div class="fw-semibold">
-                            {{ $notification->pengumuman->judul ?? 'Pengumuman' }}
-                            @unless ($notification->is_read)
-                                <span class="badge bg-danger ms-2">Baru</span>
-                            @endunless
+        <div class="ann-section">
+            <div class="ann-table ann-table--notif">
+                <div class="ann-table__head">
+                    <div>Judul</div>
+                    <div>Target</div>
+                    <div>Waktu</div>
+                    <div>Status</div>
+                </div>
+                <div class="ann-table__body">
+                    @forelse ($notifications as $notification)
+                        @php
+                            $target = optional($notification->pengumuman)->target_role;
+                            $label = [
+                                'guru' => 'Guru',
+                                'ortu' => 'Ortu',
+                                'all' => 'Semua',
+                                'semua' => 'Semua',
+                            ][$target] ?? ($target ? ucfirst($target) : '-');
+                            $isRead = $notification->is_read;
+                        @endphp
+                        <div class="ann-row">
+                            <div class="cell ann-row__title">{{ $notification->pengumuman->judul ?? 'Pengumuman' }}</div>
+                            <div class="cell"><span class="ann-pill">{{ $label }}</span></div>
+                            <div class="cell">{{ optional($notification->pengumuman)->created_at?->format('d M Y H:i') }}</div>
+                            <div class="cell">
+                                <form action="{{ route('pengumuman.notif.read', $notification->id) }}" method="POST">
+                                    @csrf
+                                    <button class="ann-btn ann-btn--secondary ann-btn--inline" type="submit">
+                                        <span class="ann-status {{ $isRead ? 'ann-status--active' : 'ann-status--pending' }}">
+                                            <span class="material-symbols-rounded">{{ $isRead ? 'done' : 'hourglass_empty' }}</span>
+                                            {{ $isRead ? 'Sudah dibaca' : 'Belum dibaca' }}
+                                        </span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <small class="text-muted">
-                            {{ optional($notification->pengumuman)->target_role ? strtoupper($notification->pengumuman->target_role) . ' • ' : '' }}
-                            {{ optional($notification->pengumuman)->created_at?->format('d M Y H:i') }}
-                        </small>
-                    </div>
-                    <form action="{{ route('pengumuman.notif.read', $notification->id) }}" method="POST" class="ms-3">
-                        @csrf
-                        <button class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-check2"></i> Tandai dibaca
-                        </button>
-                    </form>
+                    @empty
+                        <div class="ann-empty">Belum ada notifikasi pengumuman.</div>
+                    @endforelse
                 </div>
-            @empty
-                <div class="list-group-item text-center text-muted">
-                    Belum ada notifikasi pengumuman.
-                </div>
-            @endforelse
+            </div>
         </div>
 
-        <div class="mt-3">
-            {{ $notifications->links() }}
+        <div class="ann-header__right ann-header--guru">
+            <div class="ann-pagination ann-pagination--inline ann-pagination--right">
+                <span class="ann-pagination__text">
+                    <span class="ann-pagination__label">Menampilkan</span>
+                    <span class="ann-pagination__current">{{ $rangeText }}</span>
+                    <span class="ann-pagination__total">dari {{ $totalItems }}</span>
+                </span>
+                <div class="ann-pagination__arrows">
+                    <button class="ann-icon-btn" data-nav-url="{{ $notifications->previousPageUrl() }}" @disabled(!$notifications->previousPageUrl())>
+                        <span class="material-symbols-rounded">chevron_left</span>
+                    </button>
+                    <button class="ann-icon-btn" data-nav-url="{{ $notifications->nextPageUrl() }}" @disabled(!$notifications->nextPageUrl())>
+                        <span class="material-symbols-rounded">chevron_right</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection

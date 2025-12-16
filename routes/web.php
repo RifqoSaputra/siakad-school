@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\NilaiHarianSiswaController;
 use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\PengumumanController;
+use App\Http\Controllers\Admin\AdminAnnouncementController;
 
 // ===============================
 // GURU CONTROLLERS
@@ -62,11 +63,39 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // ===============================
 Route::middleware('auth')->group(function () {
 
+    // Dashboard alias per role
+    Route::get('/admin', [DashboardController::class, 'index'])
+        ->middleware('role:Admin')
+        ->name('admin.dashboard');
+
+    Route::get('/guru', [DashboardController::class, 'index'])
+        ->middleware('role:Guru')
+        ->name('guru.dashboard');
+
+    Route::get('/ortu', [DashboardController::class, 'index'])
+        ->middleware('role:Orang Tua')
+        ->name('ortu.dashboard');
+
     // ---------------------------
-    // DASHBOARD UTAMA
+    // DASHBOARD UTAMA (alias untuk menjaga kompatibilitas)
     // ---------------------------
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');   // dipakai di error tadi
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('Admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user && $user->hasRole('Guru')) {
+            return redirect()->route('guru.dashboard');
+        }
+
+        if ($user && $user->hasRole('Orang Tua')) {
+            return redirect()->route('ortu.dashboard');
+        }
+
+        return redirect()->route('login');
+    })->name('dashboard');
 
     // (opsional) kalau ada kode lama yang masih pakai 'dashboard.index':
     // Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -103,15 +132,16 @@ Route::middleware('auth')->group(function () {
 
 
     // ---------------------------
-    // ADMIN: PENGUMUMAN
+    // ADMIN: PENGUMUMAN (New)
     // ---------------------------
-    Route::prefix('admin/pengumuman')->as('admin.pengumuman.')->middleware('role:Admin')->group(function () {
-        Route::get('/', [PengumumanController::class, 'index'])->name('index');
-        Route::get('/create', [PengumumanController::class, 'create'])->name('create');
-        Route::post('/', [PengumumanController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [PengumumanController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [PengumumanController::class, 'update'])->name('update');
-        Route::delete('/{id}', [PengumumanController::class, 'destroy'])->name('destroy');
+    Route::prefix('admin')->middleware('role:Admin')->group(function () {
+        Route::prefix('pengumuman')->group(function () {
+            Route::get('/', [AdminAnnouncementController::class, 'index'])->name('admin.pengumuman.index');
+            Route::post('/', [AdminAnnouncementController::class, 'store'])->name('admin.pengumuman.store');
+            Route::get('/{pengumuman}', [AdminAnnouncementController::class, 'show'])->name('admin.pengumuman.show');
+            Route::put('/{pengumuman}', [AdminAnnouncementController::class, 'update'])->name('admin.pengumuman.update');
+            Route::delete('/{pengumuman}', [AdminAnnouncementController::class, 'destroy'])->name('admin.pengumuman.destroy');
+        });
     });
 
 
@@ -164,8 +194,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('absensi', [CekAbsenController::class, 'index'])->name('ortu.absensi');
 
-        // Info anak
-        Route::get('info-anak', [InfoAnakController::class, 'index'])->name('ortu.info-anak');
+        // Info anak dialihkan ke dashboard utama
+        Route::get('info-anak', function () {
+            return redirect()->route('ortu.dashboard');
+        })->name('ortu.info-anak');
 
         // Rapor
         Route::get('rapor', function () {
