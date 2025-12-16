@@ -82,7 +82,7 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::prefix('pengumuman')->as('admin.pengumuman.')->group(function () {
-            Route::get('/', [PengumumanController::class, 'index'])->name('index');     
+            Route::get('/', [PengumumanController::class, 'index'])->name('index');
             Route::get('/create', [PengumumanController::class, 'create'])->name('create');
             Route::post('/', [PengumumanController::class, 'store'])->name('store');
             Route::get('/{id}/edit', [PengumumanController::class, 'edit'])->name('edit');

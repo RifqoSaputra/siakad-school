@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('kota_rmh', 100)->nullable();
             $table->string('no_hp', 13)->nullable();
             $table->string('email', 100)->nullable();
+            $table->boolean('status_aktif')->default(1);
 
             // Kolom Audit
             $table->unsignedInteger('user_entry')->nullable();

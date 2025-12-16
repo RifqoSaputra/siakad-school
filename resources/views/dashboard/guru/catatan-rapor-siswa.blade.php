@@ -80,8 +80,6 @@
             </div>
         </div>
 
-        <hr>
-
         {{-- FORM CATATAN --}}
         <form action="{{ route('guru.rapor.walikelas.store') }}" method="POST" id="catatanRaporForm">
             @csrf

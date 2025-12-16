@@ -4,17 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\SIAKAD\SCHOOL\Siswa;
 use Illuminate\Support\Facades\DB;
 
 class ManajemenSiswaController extends Controller
 {
-    /**
-     * Menampilkan daftar siswa dengan filtering dan ringkasan sederhana.
-     */
     public function index(Request $request)
     {
-        // 1. Ambil semua tahun ajaran unik dari tabel "kelas" untuk dropdown
+        /* =====================================================
+         * 1. TAHUN AJARAN
+         * ===================================================== */
         $allTahunAjaran = DB::table('kelas')
             ->select('tahun_ajaran')
             ->distinct()
@@ -22,60 +20,92 @@ class ManajemenSiswaController extends Controller
             ->pluck('tahun_ajaran')
             ->toArray();
 
-        // Tentukan tahun ajaran aktif/terpilih (default ke yang terbaru jika ada)
-        $defaultTahunAjaran = !empty($allTahunAjaran) ? $allTahunAjaran[0] : null;
-        $tahunAjaranAktif = $request->get('tahun_ajaran', $defaultTahunAjaran);
+        $tahunAjaranAktif = $request->get(
+            'tahun_ajaran',
+            $allTahunAjaran[0] ?? null
+        );
 
-        // 2. Data dropdown kelas (tanpa join ke siswa)
-        //    Nama kelas: "tingkat_kelas nama_kelas"
+        /* =====================================================
+         * 2. DROPDOWN KELAS
+         * ===================================================== */
         $allKelas = DB::table('kelas')
-            ->when($tahunAjaranAktif, function ($q) use ($tahunAjaranAktif) {
-                $q->where('tahun_ajaran', $tahunAjaranAktif);
-            })
-            ->select('kelas_id', DB::raw("CONCAT(tingkat_kelas, ' ', nama_kelas) AS nama_kelas_lengkap"))
-            ->orderBy('tingkat_kelas', 'asc')
-            ->orderBy('nama_kelas', 'asc')
+            ->where('tahun_ajaran', $tahunAjaranAktif)
+            ->select(
+                'kelas_id',
+                DB::raw("CONCAT(tingkat_kelas, ' ', nama_kelas) AS nama_kelas_lengkap")
+            )
+            ->orderBy('tingkat_kelas')
+            ->orderBy('nama_kelas')
             ->get();
 
-        // 3. Query dasar siswa (tanpa join dulu, kita simplekan)
-        $siswaQuery = Siswa::query();
+        /* =====================================================
+         * 3. QUERY UTAMA SISWA
+         * ===================================================== */
+        $query = DB::table('siswa')
+            ->leftJoin('siswa_kelas', function ($join) use ($tahunAjaranAktif) {
+                $join->on('siswa.id_siswa', '=', 'siswa_kelas.id_siswa')
+                    ->where('siswa_kelas.tahun_ajaran', $tahunAjaranAktif)
+                    ->where('siswa_kelas.status', 1);
+            })
+            ->leftJoin('kelas', 'kelas.kelas_id', '=', 'siswa_kelas.kelas_id')
+            ->select(
+                'siswa.id_siswa',
+                'siswa.nis',
+                'siswa.nama',
+                'siswa.tgl_lahir',
+                DB::raw("CONCAT(kelas.tingkat_kelas, ' ', kelas.nama_kelas) AS kelas_sekarang"),
+                DB::raw("IF(siswa_kelas.status = 1, 'Aktif', 'Non Aktif') AS status_akademik")
+            );
 
-        // FILTER 1: Search (NIS atau Nama)
+        /* =====================================================
+         * 4. FILTER
+         * ===================================================== */
+        // Search
         if ($search = $request->get('search')) {
-            $siswaQuery->where(function ($query) use ($search) {
-                $query->where('nama', 'like', '%' . $search . '%')
-                    ->orWhere('nis', 'like', '%' . $search . '%');
+            $query->where(function ($q) use ($search) {
+                $q->where('siswa.nama', 'like', "%{$search}%")
+                    ->orWhere('siswa.nis', 'like', "%{$search}%");
             });
         }
 
-        // FILTER 2: Jenis Kelamin (jika kolomnya ada)
-        if ($jenisKelamin = $request->get('jenis_kelamin')) {
-            $siswaQuery->where('jenis_kelamin', $jenisKelamin);
+        // Filter Kelas
+        if ($kelasId = $request->get('kelas')) {
+            $query->where('kelas.kelas_id', $kelasId);
         }
 
-        // NOTE:
-        // Untuk saat ini kita BELUM menghubungkan siswa dengan kelas_aktif/siswa_kelas,
-        // supaya tidak error karena struktur tabel belum pasti.
-        // Nanti kalau kamu mau, kita bisa tambah join ke siswa_kelas + kelas.
+        /* =====================================================
+         * 5. RINGKASAN
+         * ===================================================== */
+        $totalSiswaAktif = DB::table('siswa_kelas')
+            ->where('tahun_ajaran', $tahunAjaranAktif)
+            ->where('status', 1)
+            ->count();
 
-        // 4. Hitung ringkasan sederhana
-        $totalSiswaAktif    = $siswaQuery->count(); // anggap semua data = aktif
-        $totalSiswaNonAktif = 0;                    // belum didefinisikan kolom status
+        $totalSiswaNonAktif = DB::table('siswa')
+            ->whereNotIn('id_siswa', function ($q) use ($tahunAjaranAktif) {
+                $q->select('id_siswa')
+                    ->from('siswa_kelas')
+                    ->where('tahun_ajaran', $tahunAjaranAktif)
+                    ->where('status', 1);
+            })
+            ->count();
 
-        // 5. Ambil data siswa untuk tabel (paginate)
-        $siswaData = $siswaQuery
-            ->orderBy('nama', 'asc')
-            ->paginate(15);
+        /* =====================================================
+         * 6. PAGINATION
+         * ===================================================== */
+        $siswaData = $query
+            ->orderBy('siswa.nama')
+            ->paginate(15)
+            ->withQueryString();
 
-        // Kirim ke view
         return view('dashboard.admin.manajemen-siswa', compact(
             'siswaData',
             'tahunAjaranAktif',
+            'allTahunAjaran',
+            'allKelas',
             'totalSiswaAktif',
             'totalSiswaNonAktif',
-            'allTahunAjaran',   // dropdown tahun ajaran
-            'allKelas',         // dropdown kelas (walaupun belum dipakai di query)
-            'request'           // supaya filter tetap keisi di form
+            'request'
         ));
     }
 }

@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
+use App\Models\SIAKAD\SCHOOL\Mapel;
 
 class MapelController extends Controller
 {
     public function index()
     {
-        // Ambil semua data dari tabel 'mapel'
-        $mapel = DB::table('mapel')->get();
+        $mapel = Mapel::with(['penugasanGuru.guru'])
+            ->orderBy('nama_mapel')
+            ->get();
 
-        // Kirim data ke view
         return view('dashboard.admin.manajemen-mapel', compact('mapel'));
     }
 }

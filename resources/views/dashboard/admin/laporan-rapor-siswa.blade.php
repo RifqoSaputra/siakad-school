@@ -6,18 +6,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        .toast-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+        }
+    </style>
+    <div id="toastBox" class="toast-box"></div>
 
     @if (session('success'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-sm" role="alert">
-            <p class="font-bold"><i class="fas fa-check-circle mr-2"></i>Sukses</p>
-            <p>{{ session('success') }}</p>
-        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                showToast(@json(session('success')), "success");
+            });
+        </script>
     @endif
+
     @if (session('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded shadow-sm" role="alert">
-            <p class="font-bold"><i class="fas fa-exclamation-circle mr-2"></i>Terjadi Kesalahan</p>
-            <p>{!! session('error') !!}</p>
-        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                showToast(@json(session('error')), "error");
+            });
+        </script>
     @endif
 
     <div class="p-6 md:p-10 bg-gray-50 min-h-screen font-sans">
@@ -345,7 +357,7 @@
                             let semester = '{{ $semester }}';
                             let tahunAjaran = '{{ $tahunAjaran }}';
                             if (!kelasId) {
-                                alert('Harap pilih Kelas terlebih dahulu.');
+                                showToast('Harap pilih Kelas terlebih dahulu.', 'warning');
                                 return;
                             }
 
@@ -404,7 +416,7 @@
 
                                     } else {
 
-                                        alert(response.message || 'Validasi gagal.');
+                                        showToast(response.message || 'Validasi gagal.', 'error');
 
                                     }
                                 },
@@ -414,14 +426,14 @@
                                         '<i class="fas fa-check-double mr-2"></i> Submit Rapor Kelas');
                                     let errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr
                                         .responseJSON.message : "Terjadi kesalahan saat validasi submit.";
-                                    alert('Gagal Validasi: ' + errorMsg);
+                                    showToast('Gagal Validasi: ' + errorMsg, 'error');
                                 }
                             });
                         });
 
                         // --- FINAL SUBMIT: langsung listen ke ID real tombol confirm yang component buat ---
                         $(document).on('click', '#confirmSubmitRaporModal-confirm-btn', function() {
-                            // pastikan action telah diset (oleh success validate)
+
                             if ($(this).attr('data-action') !== 'submit') return;
 
                             let kelasId = '{{ $kelasId }}';
@@ -440,27 +452,39 @@
                                     tahun_ajaran: tahunAjaran
                                 },
                                 beforeSend: function() {
-                                    $('#submitRaporBtn').attr('disabled', true).html(
+                                    $('#submitRaporBtn')
+                                        .attr('disabled', true)
+                                        .html(
                                         '<i class="fas fa-cog fa-spin mr-2"></i> Memproses Submit...');
                                 },
                                 success: function(response) {
+
                                     if (response.status === 'success') {
-                                        alert(response.message);
-                                        window.location.reload();
+                                        showToast(response.message, 'success');
+
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 1200);
+
                                     } else {
-                                        alert(response.message || 'Gagal Submit');
-                                        $('#submitRaporBtn').attr('disabled', false).html(
-                                            '<i class="fas fa-check-double mr-2"></i> Submit Rapor Kelas'
-                                        );
+                                        showToast(response.message || 'Gagal Submit', 'error');
+                                        $('#submitRaporBtn')
+                                            .attr('disabled', false)
+                                            .html(
+                                                '<i class="fas fa-check-double mr-2"></i> Submit Rapor Kelas'
+                                                );
                                     }
                                 },
                                 error: function(xhr) {
-                                    $('#submitRaporBtn').attr('disabled', false).html(
+                                    $('#submitRaporBtn')
+                                        .attr('disabled', false)
+                                        .html(
                                         '<i class="fas fa-check-double mr-2"></i> Submit Rapor Kelas');
 
                                     let errorMsg = xhr.responseJSON?.message ??
-                                        "Terjadi kesalahan saat menyimpan nilai final.";
-                                    alert('Gagal Submit: ' + errorMsg);
+                                        'Terjadi kesalahan saat menyimpan nilai final.';
+
+                                    showToast(errorMsg, 'error');
                                 }
                             });
                         });
@@ -472,6 +496,41 @@
                                 hideModal('confirmSubmitRaporModal');
                             });
                     });
+
+                    function showToast(message, type = "success") {
+                        const container = document.getElementById('toastBox');
+                        if (!container) return;
+
+                        const colors = {
+                            success: "bg-green-600",
+                            error: "bg-red-600",
+                            warning: "bg-yellow-500 text-black",
+                            info: "bg-blue-600",
+                        };
+
+                        const icons = {
+                            success: "fas fa-check-circle",
+                            error: "fas fa-times-circle",
+                            warning: "fas fa-exclamation-triangle",
+                            info: "fas fa-info-circle",
+                        };
+
+                        const el = document.createElement("div");
+                        el.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg flex items-center mb-2
+                    opacity-0 translate-y-3 transition-all duration-300`;
+                        el.innerHTML = `<i class="${icons[type]} mr-2"></i>${message}`;
+
+                        container.appendChild(el);
+
+                        setTimeout(() => {
+                            el.classList.remove("opacity-0", "translate-y-3");
+                        }, 50);
+
+                        setTimeout(() => {
+                            el.classList.add("opacity-0", "translate-y-3");
+                            setTimeout(() => el.remove(), 300);
+                        }, 3000);
+                    }
                 </script>
             @else
                 <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-sm"
