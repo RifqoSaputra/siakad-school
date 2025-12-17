@@ -7,6 +7,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/design-system.css',
                 'resources/js/app.js',
                 'resources/css/announcement.css',
                 'resources/js/announcement.js',

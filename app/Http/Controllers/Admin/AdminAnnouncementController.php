@@ -23,16 +23,19 @@ class AdminAnnouncementController extends Controller
         $status = $request->query('status', 'any');
 
         $primaryKey = Pengumuman::primaryKeyColumn();
+        $hasScheduledFor = Schema::hasColumn('pengumuman', 'scheduled_for');
+        $hasSentAt = Schema::hasColumn('pengumuman', 'sent_at');
+
         $baseColumns = [
             'judul',
             'isi_pengumuman',
             'target_role',
             'status',
-            'scheduled_for',
-            'sent_at',
+            $hasScheduledFor ? 'scheduled_for' : null,
+            $hasSentAt ? 'sent_at' : null,
             'created_at',
         ];
-        $selectColumns = $primaryKey ? array_merge([$primaryKey], $baseColumns) : ['*'];
+        $selectColumns = $primaryKey ? array_merge([$primaryKey], array_filter($baseColumns)) : ['*'];
         $hasNewAttachmentCols = Pengumuman::usesNewAttachmentColumns();
 
         $pengumuman = Pengumuman::select($selectColumns)
@@ -98,8 +101,8 @@ class AdminAnnouncementController extends Controller
             'isi_pengumuman' => $data['isi_pengumuman'],
             'target_role' => $data['target_role'],
             'status' => $status,
-            'scheduled_for' => !empty($data['scheduled_for']) ? Carbon::parse($data['scheduled_for']) : null,
-            'sent_at' => $status === 'sent' ? now() : null,
+            'scheduled_for' => !empty($data['scheduled_for']) && Schema::hasColumn('pengumuman', 'scheduled_for') ? Carbon::parse($data['scheduled_for']) : null,
+            'sent_at' => $status === 'sent' && Schema::hasColumn('pengumuman', 'sent_at') ? now() : null,
             'id_admin' => Auth::user()->users_id,
         ];
 
@@ -119,8 +122,8 @@ class AdminAnnouncementController extends Controller
             'isi_pengumuman' => $data['isi_pengumuman'],
             'target_role' => $data['target_role'],
             'status' => $status,
-            'scheduled_for' => !empty($data['scheduled_for']) ? Carbon::parse($data['scheduled_for']) : null,
-            'sent_at' => $status === 'sent' ? now() : $pengumuman->sent_at,
+            'scheduled_for' => !empty($data['scheduled_for']) && Schema::hasColumn('pengumuman', 'scheduled_for') ? Carbon::parse($data['scheduled_for']) : null,
+            'sent_at' => $status === 'sent' && Schema::hasColumn('pengumuman', 'sent_at') ? now() : $pengumuman->sent_at,
         ];
 
         $pengumuman->update($payload);
@@ -150,10 +153,10 @@ class AdminAnnouncementController extends Controller
 
     private function validatePayload(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'judul' => ['required', 'string', 'max:200'],
             'isi_pengumuman' => ['required', 'string', 'max:2000'],
-            'target_role' => ['required', Rule::in(['guru', 'ortu', 'all'])],
+            'target_role' => ['required', Rule::in(['guru', 'ortu', 'all', 'semua'])],
             'scheduled_for' => ['nullable', 'date', 'after:now'],
             'attachments.*' => ['nullable', 'file', 'max:10240'],
         ], [], [
@@ -162,6 +165,13 @@ class AdminAnnouncementController extends Controller
             'target_role' => 'Penerima',
             'scheduled_for' => 'Jadwal',
         ]);
+
+        // Normalisasi target_role ke nilai DB
+        if (($validated['target_role'] ?? '') === 'all') {
+            $validated['target_role'] = 'semua';
+        }
+
+        return $validated;
     }
 
     private function removeAttachments(Request $request, Pengumuman $announcement): void
@@ -219,6 +229,10 @@ class AdminAnnouncementController extends Controller
     private function finalizeDueAnnouncements(): void
     {
         $now = Carbon::now();
+        if (!Schema::hasColumn('pengumuman', 'scheduled_for') || !Schema::hasColumn('pengumuman', 'sent_at')) {
+            return; // kolom belum ada, skip agar tidak error
+        }
+
         Pengumuman::where('status', 'scheduled')
             ->whereNotNull('scheduled_for')
             ->where('scheduled_for', '<=', $now)

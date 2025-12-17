@@ -15,18 +15,18 @@ class ManajemenGuruController extends Controller
         // Total semua guru (tabel: guru)
         $totalGuru = DB::table('guru')->count();
 
-        // Karena di tabel guru TIDAK ada kolom status,
-        // untuk sementara kita anggap semua guru = "Aktif"
-        $totalGuruAktif = $totalGuru;
-
-        // Di tabel guru juga tidak ada kolom status_kepegawaian,
-        // jadi untuk saat ini kita set 0 saja agar view tidak error.
-        $totalGuruPNS = 0;
+        // Status guru mengikuti status user (aktif/nonaktif)
+        $totalGuruAktif = DB::table('guru')
+            ->join('users', 'guru.users_id', '=', 'users.users_id')
+            ->where('users.status', 1)
+            ->count();
 
         // --- 2. FILTER DAN PENCARIAN ---
 
-        // Urutkan berdasarkan nama_guru (bukan nama)
-        $query = DB::table('guru')->orderBy('nama_guru', 'asc');
+        $query = DB::table('guru')
+            ->leftJoin('users', 'guru.users_id', '=', 'users.users_id')
+            ->select('guru.*', 'users.status as user_status')
+            ->orderBy('guru.id_guru', 'asc');
 
         // Pencarian Nama / NIP
         if ($request->filled('search')) {
@@ -38,27 +38,34 @@ class ManajemenGuruController extends Controller
             });
         }
 
-        // Untuk saat ini kita TIDAK pakai filter status & status_kepegawaian
-        // karena kolomnya tidak ada di tabel guru.
+        // Filter status aktif / nonaktif (mengacu ke status user)
+        if ($request->filled('status')) {
+            $status = strtolower($request->input('status'));
+            if ($status === 'aktif' || $status === 'nonaktif') {
+                $query->where('users.status', $status === 'aktif' ? 1 : 0);
+            }
+        }
+
+        // Filter jenis kelamin
+        if ($request->filled('jenis_kelamin')) {
+            $jk = $request->input('jenis_kelamin');
+            $query->where('guru.jenis_kelamin', $jk);
+        }
 
         // --- 3. EKSEKUSI QUERY DAN PAGINASI ---
         $guruData = $query->paginate(15);
 
-        // --- 4. SIAPKAN DATA DROPDOWN (Sementara Kosong / Dummy) ---
-
-        // Jika view butuh ini untuk <select>, kita tetap kirim agar tidak error.
-        // Boleh dikosongkan atau diisi nilai contoh.
-        $allStatusKepegawaian = ['PNS', 'PPPK', 'Non-ASN']; // hanya untuk tampilan
-        $allStatus = ['Aktif', 'Nonaktif'];                  // hanya untuk tampilan
+        // --- 4. SIAPKAN DATA DROPDOWN ---
+        $allStatus = ['Aktif', 'Nonaktif'];
+        $allJenisKelamin = ['Laki-laki', 'Perempuan'];
 
         return view('dashboard.admin.manajemen-guru', compact(
             'request',
             'guruData',
             'totalGuru',
             'totalGuruAktif',
-            'totalGuruPNS',
-            'allStatusKepegawaian',
-            'allStatus'
+            'allStatus',
+            'allJenisKelamin'
         ));
     }
 }

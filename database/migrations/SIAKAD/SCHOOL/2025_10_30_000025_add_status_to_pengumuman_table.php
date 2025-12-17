@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('pengumuman', 'status')) {
+            return;
+        }
+
         Schema::table('pengumuman', function (Blueprint $table) {
             $table->enum('status', ['draft', 'published'])->default('published')->after('target_role');
         });

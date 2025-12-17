@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip creation if table already exists (avoid conflict with newer pengumuman schema)
+        if (Schema::hasTable('pengumuman')) {
+            return;
+        }
+
         Schema::create('pengumuman', function (Blueprint $table) {
             $table->increments('id_pengumuman');
             $table->string('judul', 150);

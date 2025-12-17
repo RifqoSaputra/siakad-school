@@ -1,0 +1,12 @@
+/* Design System surface
+ * --------------------------------------------------
+ * This file re-exports our shared UI styling so it can
+ * be included once globally (e.g., from layouts.template)
+ * and reused across pages without touching each component.
+ * It currently imports the announcement styles (which now
+ * contain generic, prefix-less aliases like .btn, .select,
+ * .table, .toolbar__row, etc.). */
+
+@import './announcement.css';
+
+/* Place any future global overrides or tokens below this line. */

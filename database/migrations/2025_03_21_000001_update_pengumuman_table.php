@@ -37,7 +37,16 @@ return new class extends Migration
             return;
         }
 
-        // Normalisasi data lama sebelum mengubah tipe kolom ENUM.
+        // Pastikan kolom bisa menampung nilai baru sebelum normalisasi data.
+        $connection = config('database.default');
+        $driver = config("database.connections.{$connection}.driver");
+        if ($driver === 'mysql') {
+            // Gunakan VARCHAR agar fleksibel dan hindari masalah enum legacy.
+            DB::statement("ALTER TABLE pengumuman MODIFY target_role VARCHAR(20) NOT NULL DEFAULT 'semua'");
+            DB::statement("ALTER TABLE pengumuman MODIFY status VARCHAR(20) NOT NULL DEFAULT 'draft'");
+        }
+
+        // Normalisasi data lama setelah tipe kolom fleksibel.
         DB::table('pengumuman')
             ->whereIn('target_role', ['all', 'admin'])
             ->update(['target_role' => 'semua']);
@@ -45,10 +54,6 @@ return new class extends Migration
         DB::table('pengumuman')
             ->where('status', 'published')
             ->update(['status' => 'dikirim']);
-
-        // Ubah daftar pilihan ENUM tanpa membutuhkan doctrine/dbal (gunakan raw statement).
-        DB::statement("ALTER TABLE pengumuman MODIFY target_role ENUM('guru','ortu','semua') NOT NULL DEFAULT 'semua'");
-        DB::statement("ALTER TABLE pengumuman MODIFY status ENUM('draft','dijadwalkan','dikirim') NOT NULL DEFAULT 'draft'");
 
         if (!Schema::hasColumn('pengumuman', 'scheduled_at')) {
             Schema::table('pengumuman', function (Blueprint $table) {

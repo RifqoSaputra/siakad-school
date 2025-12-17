@@ -2,10 +2,6 @@
 
 @section('title', 'Pengumuman')
 
-@push('styles')
-    @vite(['resources/css/announcement.css'])
-@endpush
-
 @push('scripts')
     @vite(['resources/js/announcement.js'])
 @endpush
@@ -30,49 +26,49 @@
             $rangeText = ($firstItem && $lastItem) ? "{$firstItem}–{$lastItem}" : '0';
         @endphp
 
-        <div class="ann-filters">
-            <div class="ann-filter" data-filter="date_range">
-                <button class="ann-filter__btn">
+        <div class="filters">
+            <div class="filter" data-filter="date_range">
+                <button class="filter__btn">
                     <span>{{ $dateMap[$dateRange] ?? 'Kapan saja' }}</span>
                     <span class="material-symbols-rounded">arrow_drop_down</span>
                 </button>
-                <div class="ann-filter__menu">
+                <div class="filter__menu">
                     @foreach ($dateMap as $val => $label)
-                        <button class="ann-filter__option" data-value="{{ $val }}">
+                        <button class="filter__option" data-value="{{ $val }}">
                             <span class="ann-radio {{ $dateRange === $val ? 'active' : '' }}"></span>{{ $label }}
                         </button>
                     @endforeach
                 </div>
             </div>
 
-        <div class="ann-filter" data-filter="target_role">
-            <button class="ann-filter__btn">
+        <div class="filter" data-filter="target_role">
+            <button class="filter__btn">
                 <span>{{ ['any'=>'Penerima','all'=>'Semua','guru'=>'Guru','ortu'=>'Ortu'][$target] ?? 'Penerima' }}</span>
                 <span class="material-symbols-rounded">arrow_drop_down</span>
             </button>
-            <div class="ann-filter__menu">
+            <div class="filter__menu">
                 @foreach (['all'=>'Semua','guru'=>'Guru','ortu'=>'Ortu'] as $val => $label)
-                    <button class="ann-filter__option {{ $val === 'all' ? 'ann-filter__option--divider' : '' }}" data-value="{{ $val }}">
+                    <button class="filter__option {{ $val === 'all' ? 'filter__option--divider' : '' }}" data-value="{{ $val }}">
                             <span class="ann-radio {{ $target === $val ? 'active' : '' }}"></span>{{ $label }}
                         </button>
                     @endforeach
                 </div>
             </div>
 
-            <div class="ann-filter" data-filter="status">
-                <button class="ann-filter__btn">
+            <div class="filter" data-filter="status">
+                <button class="filter__btn">
                     <span>{{ ['any'=>'Status','sent'=>'Dikirim','scheduled'=>'Dijadwalkan','draft'=>'Draft'][$status] ?? 'Status' }}</span>
                     <span class="material-symbols-rounded">arrow_drop_down</span>
                 </button>
-                <div class="ann-filter__menu">
+                <div class="filter__menu">
                     @foreach (['any'=>'Semua','sent'=>'Dikirim','scheduled'=>'Dijadwalkan','draft'=>'Draft'] as $val => $label)
-                        <button class="ann-filter__option {{ $val === 'any' ? 'ann-filter__option--divider' : '' }}" data-value="{{ $val }}">
+                        <button class="filter__option {{ $val === 'any' ? 'filter__option--divider' : '' }}" data-value="{{ $val }}">
                             <span class="ann-radio {{ $status === $val ? 'active' : '' }}"></span>{{ $label }}
                         </button>
                     @endforeach
                 </div>
             </div>
-            <button type="button" class="ann-reset {{ $hasFilters ? 'show' : '' }}" id="filter-reset">
+            <button type="button" class="reset {{ $hasFilters ? 'show' : '' }}" id="filter-reset">
                 <span class="material-symbols-rounded">refresh</span>
                 Reset Filter
             </button>
@@ -171,8 +167,8 @@
                             </div>
                         @endif
                     </div>
-                    <div class="cell ann-status-cell">
-                        <span class="ann-status {{ $row->statusClass() }}">
+                    <div class="cell ann-status-cell status-cell">
+                        <span class="ann-status status {{ $row->statusClass() }}">
                             <span class="material-symbols-rounded">{{ $row->statusIcon() }}</span>
                             {{ $row->statusLabel() }}
                         </span>
@@ -229,34 +225,34 @@
             @csrf
             @method('POST')
             <input type="hidden" name="action_status" id="action_status" value="sent">
-            <div class="ann-form">
-                <div class="ann-field">
-                    <label class="ann-field__label" for="send_mode_now">Diumumkan Pada</label>
+            <div class="form">
+                <div class="field">
+                    <label class="field__label" for="send_mode_now">Diumumkan Pada</label>
                 </div>
 
-                <div class="ann-sendmode">
-                    <label class="ann-sendmode__option" for="send_mode_now">
+                <div class="sendmode">
+                    <label class="sendmode__option" for="send_mode_now">
                         <input type="radio" id="send_mode_now" name="send_mode" value="now" checked>
-                        <span class="ann-radio"></span>
-                        <div class="ann-sendmode__text">
-                            <div class="ann-sendmode__title">Saat ini, <span class="ann-sendmode__date">{{ now()->locale('id')->translatedFormat('j M Y') }}</span></div>
+                        <span class="radio"></span>
+                        <div class="sendmode__text">
+                            <div class="sendmode__title">Saat ini, <span class="sendmode__date">{{ now()->locale('id')->translatedFormat('j M Y') }}</span></div>
                         </div>
                     </label>
-                    <div class="ann-sendmode__divider"></div>
-                    <label class="ann-sendmode__option" for="send_mode_schedule">
+                    <div class="sendmode__divider"></div>
+                    <label class="sendmode__option" for="send_mode_schedule">
                         <input type="radio" id="send_mode_schedule" name="send_mode" value="schedule">
-                        <span class="ann-radio"></span>
-                        <div class="ann-sendmode__text">
-                            <div class="ann-sendmode__title">Jadwalkan</div>
+                        <span class="radio"></span>
+                        <div class="sendmode__text">
+                            <div class="sendmode__title">Jadwalkan</div>
                         </div>
                     </label>
                 </div>
 
-                <div class="ann-field-inline" id="schedule_section" style="display:none;">
-                    <div class="ann-field">
-                        <label class="ann-field__label" for="scheduled_display_text">Tanggal</label>
+                <div class="field-inline" id="schedule_section" style="display:none;">
+                    <div class="field">
+                        <label class="field__label" for="scheduled_display_text">Tanggal</label>
                         <div class="ann-datetime">
-                            <input type="hidden" class="ann-input ann-input--datetime" id="scheduled_input" name="scheduled_for">
+                            <input type="hidden" class="ann-input input ann-input--datetime" id="scheduled_input" name="scheduled_for">
                             <div class="ann-datetime__display" id="scheduled_display" tabindex="0">
                                 <input type="text" id="scheduled_display_text" name="scheduled_display_text" class="ann-datetime__input" placeholder="Pilih tanggal" autocomplete="off">
                                 <span class="material-symbols-rounded">calendar_month</span>
@@ -277,59 +273,59 @@
                         </div>
                     </div>
 
-                    <div class="ann-field">
-                        <label class="ann-field__label" for="scheduled_time_input">Waktu</label>
+                    <div class="field">
+                        <label class="field__label" for="scheduled_time_input">Waktu</label>
                         <div class="ann-datetime__display ann-datetime__display--time">
-                            <input type="text" id="scheduled_time_input" name="scheduled_time_input" class="ann-input ann-input--time" inputmode="numeric" placeholder="00:00" autocomplete="off">
+                            <input type="text" id="scheduled_time_input" name="scheduled_time_input" class="ann-input input ann-input--time" inputmode="numeric" placeholder="00:00" autocomplete="off">
                             <span class="material-symbols-rounded">schedule</span>
                         </div>
                     </div>
                 </div>
                 <div class="ann-error" id="datetime-error">Tanggal telah berlalu. Silahkan pilih jadwal lain.</div>
 
-                <div class="ann-field">
-                    <label class="ann-field__label" for="recipient_all">Penerima</label>
-                    <div class="ann-recipient" id="recipient_field">
-                        <label class="ann-recipient__option is-active" for="recipient_all">
+                <div class="field">
+                    <label class="field__label" for="recipient_all">Penerima</label>
+                    <div class="recipient" id="recipient_field">
+                        <label class="recipient__option is-active" for="recipient_all">
                             <input type="radio" id="recipient_all" name="target_role" value="all" checked>
-                            <span class="ann-radio active"></span>
-                            <span class="ann-recipient__label">Semua</span>
+                            <span class="radio active"></span>
+                            <span class="recipient__label">Semua</span>
                         </label>
-                        <div class="ann-sendmode__divider"></div>
-                        <label class="ann-recipient__option" for="recipient_guru">
+                        <div class="sendmode__divider"></div>
+                        <label class="recipient__option" for="recipient_guru">
                             <input type="radio" id="recipient_guru" name="target_role" value="guru">
-                            <span class="ann-radio"></span>
-                            <span class="ann-recipient__label">Guru</span>
+                            <span class="radio"></span>
+                            <span class="recipient__label">Guru</span>
                         </label>
-                        <div class="ann-sendmode__divider"></div>
-                            <label class="ann-recipient__option" for="recipient_ortu">
+                        <div class="sendmode__divider"></div>
+                            <label class="recipient__option" for="recipient_ortu">
                             <input type="radio" id="recipient_ortu" name="target_role" value="ortu">
-                            <span class="ann-radio"></span>
-                            <span class="ann-recipient__label">Ortu</span>
+                            <span class="radio"></span>
+                            <span class="recipient__label">Ortu</span>
                         </label>
                     </div>
                 </div>
 
-                <div class="ann-field" id="field-title">
-                    <label class="ann-field__label" for="title-input">
+                <div class="field" id="field-title">
+                    <label class="field__label" for="title-input">
                         Subjek
-                        <span class="ann-counter" id="title-count">0/200</span>
+                        <span class="counter" id="title-count">0/200</span>
                     </label>
-                    <input type="text" name="judul" class="ann-input" id="title-input" required placeholder="Masukkan subjek...">
-                    <div class="ann-field__error" id="title-error"></div>
+                    <input type="text" name="judul" class="ann-input input" id="title-input" required placeholder="Masukkan subjek...">
+                    <div class="field__error" id="title-error"></div>
                 </div>
 
-                <div class="ann-field" id="field-body">
-                    <label class="ann-field__label" for="body-input">
+                <div class="field" id="field-body">
+                    <label class="field__label" for="body-input">
                         Isi Pengumuman
-                        <span class="ann-counter" id="body-count">0/2000</span>
+                        <span class="counter" id="body-count">0/2000</span>
                     </label>
-                    <textarea name="isi_pengumuman" rows="6" class="ann-textarea" id="body-input" required placeholder="Masukkan isi pengumuman..."></textarea>
-                    <div class="ann-field__error" id="body-error"></div>
+                    <textarea name="isi_pengumuman" rows="6" class="ann-textarea textarea" id="body-input" required placeholder="Masukkan isi pengumuman..."></textarea>
+                    <div class="field__error" id="body-error"></div>
                 </div>
 
-                <div class="ann-field">
-                    <label class="ann-field__label" for="attachments_input">Lampiran</label>
+                <div class="field">
+                    <label class="field__label" for="attachments_input">Lampiran</label>
                     <div class="ann-attach">
                         <div class="ann-attach__row">
                             <div class="ann-attach__info">

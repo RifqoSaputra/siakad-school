@@ -2,10 +2,6 @@
 
 @section('title', 'Manajemen Siswa')
 
-@push('styles')
-    @vite(['resources/css/announcement.css'])
-@endpush
-
 @push('scripts')
     @vite(['resources/js/announcement.js'])
 @endpush
