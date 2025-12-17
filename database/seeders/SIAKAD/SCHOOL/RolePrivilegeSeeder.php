@@ -89,16 +89,7 @@ class RolePrivilegeSeeder extends Seeder
             ]);
         }
 
-        // Akses Pengumuman (ID 24) - Guru boleh lihat
-        $privileges[] = array_merge($base_priv, [
-            'role_priv_id' => $id_counter++,
-            'role_id' => 2,
-            'menu_id' => 24,
-            'can_view' => 1,
-        ]);
-
         // Akses CRUD untuk menu-menu GURU yang tersisa:
-        // (HAPUS 15, 18 sesuai permintaan)
         $guru_menus_crud = [17, 25, 26]; // 17 = input absensi; 25/26 = nilai anak
         foreach ($guru_menus_crud as $menu_id) {
             $privileges[] = array_merge($base_priv, [
@@ -144,7 +135,7 @@ class RolePrivilegeSeeder extends Seeder
         ]);
 
         // ORTU: hanya akses ke menu tertentu — sesuai permintaan.
-        $ortu_menus = [19, 20, 21, 22, 24]; // Info Anak, Jadwal, Rapor, Riwayat Absensi, Pengumuman (tanpa 23)
+        $ortu_menus = [19, 20, 21, 22]; // Info Anak, Jadwal, Rapor, Riwayat Absensi, Pengumuman (tanpa 23)
         foreach ($ortu_menus as $menu_id) {
             $privileges[] = array_merge($base_priv, [
                 'role_priv_id' => $id_counter++,

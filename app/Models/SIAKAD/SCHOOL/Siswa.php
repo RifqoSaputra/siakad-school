@@ -20,6 +20,7 @@ class Siswa extends Model
         'id_ortu',
         'nis',
         'nama',
+        'jenis_kelamin',
         'tgl_lahir',
         'agama', 
         'alamat_rmh',

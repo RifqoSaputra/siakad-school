@@ -80,7 +80,7 @@
                             @foreach ($kelasYangTersedia as $kelas)
                                 <option value="{{ $kelas->kelas_id }}"
                                     {{ $currentKelasId == $kelas->kelas_id ? 'selected' : '' }}>
-                                    {{ $kelas->nama_kelas_lengkap }}  
+                                    {{ $kelas->nama_kelas_lengkap }}
                                 </option>
                             @endforeach
                         </select>
@@ -131,11 +131,23 @@
                         </button>
 
                         {{-- TOMBOL TAMBAH --}}
-                        <button type="button" id="open-add-task-modal" data-guru-mapel-id="{{ $guruMapelIdTarget }}"
-                            data-kelas-id="{{ $currentKelasId }}" data-mapel-id="{{ $currentMapelId }}"
-                            class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-150 ease-in-out">
-                            <i class="fas fa-plus-circle mr-2"></i> Tambah Tugas Harian
-                        </button>
+                        @php
+                            $isFinalSubmit =
+                                $listTugas->count() > 0 && $listTugas->every(fn($t) => $t->status === 'Submitted');
+                        @endphp
+
+                        @if ($isFinalSubmit)
+                            <span
+                                class="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg shadow cursor-not-allowed inline-flex items-center gap-2">
+                                <i class="fas fa-lock"></i> Nilai Sudah Dikunci
+                            </span>
+                        @else
+                            <button type="button" id="open-add-task-modal" data-guru-mapel-id="{{ $guruMapelIdTarget }}"
+                                data-kelas-id="{{ $currentKelasId }}" data-mapel-id="{{ $currentMapelId }}"
+                                class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition">
+                                <i class="fas fa-plus-circle mr-2"></i> Tambah Tugas Harian
+                            </button>
+                        @endif
 
                         {{-- TOMBOL SUBMIT SEMUA NILAI HARIAN --}}
                         @if ($currentKelasId && $currentMapelId && count($listTugas) > 0)

@@ -394,21 +394,28 @@ class DashboardController extends Controller
         ];
 
         // 6. Rata-rata nilai semester aktif
-        $rataNilai = null;
-        if ($kelasAktif) {
-            $catatan = \App\Models\SIAKAD\SCHOOL\CatatanRaporSemester::where('id_siswa', $siswa->id_siswa)
-                ->where('kelas_id', $kelasAktif->kelas_id)
-                ->where('semester', $kelasAktif->semester ?? 'Ganjil')
-                ->where('tahun_ajaran', $kelasAktif->tahun_ajaran)
-                ->where('status_publikasi', 'Diterbitkan')
-                ->first();
+        $rataNilaiSemester = [
+            'Ganjil' => null,
+            'Genap'  => null,
+        ];
 
-            if ($catatan) {
-                $rataNilai = NilaiAkhirSemester::where('id_siswa', $siswa->id_siswa)
+        if ($kelasAktif) {
+            foreach (['Ganjil', 'Genap'] as $semester) {
+
+                $catatan = CatatanRaporSemester::where('id_siswa', $siswa->id_siswa)
                     ->where('kelas_id', $kelasAktif->kelas_id)
-                    ->where('semester', $kelasAktif->semester ?? 'Ganjil')
+                    ->where('semester', $semester)
                     ->where('tahun_ajaran', $kelasAktif->tahun_ajaran)
-                    ->avg('nilai_rapor');
+                    ->where('status_publikasi', 'Diterbitkan')
+                    ->first();
+
+                if ($catatan) {
+                    $rataNilaiSemester[$semester] = NilaiAkhirSemester::where('id_siswa', $siswa->id_siswa)
+                        ->where('kelas_id', $kelasAktif->kelas_id)
+                        ->where('semester', $semester)
+                        ->where('tahun_ajaran', $kelasAktif->tahun_ajaran)
+                        ->avg('nilai_rapor');
+                }
             }
         }
 
@@ -416,16 +423,16 @@ class DashboardController extends Controller
         $pengumuman = PengumumanUser::with('pengumuman')
             ->where('users_id', $user->users_id)
             ->latest()
-            ->limit(5)
+            ->limit(4)
             ->get()
             ->map(function ($notif) {
                 return (object) [
+                    'id' => $notif->pengumuman->id,
                     'judul' => $notif->pengumuman->judul,
                     'created_at' => $notif->pengumuman->created_at,
                     'is_read' => $notif->is_read,
                 ];
             });
-
 
         return view('dashboard.ortu.index', compact(
             'ortu',
@@ -433,7 +440,7 @@ class DashboardController extends Controller
             'kelasAktif',
             'kehadiranTerbaru',
             'kehadiran',
-            'rataNilai',
+            'rataNilaiSemester',
             'pengumuman'
         ));
     }

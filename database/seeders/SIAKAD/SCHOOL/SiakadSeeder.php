@@ -5,7 +5,7 @@ namespace Database\Seeders\SIAKAD\SCHOOL;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class SIAKADSeeder extends Seeder
+class SiakadSeeder extends Seeder
 {
     public function run(): void
     {

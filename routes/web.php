@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\NilaiHarianSiswaController;
 use App\Http\Controllers\Admin\NilaiUjianSiswaController;
 use App\Http\Controllers\Admin\LaporanRaporController;
+use App\Http\Controllers\Admin\AdminAnnouncementController;
 use App\Http\Controllers\Admin\PengumumanController;
 
 use App\Http\Controllers\Guru\AbsensiController;
@@ -68,26 +69,18 @@ Route::middleware('auth')->group(function () {
 
         Route::prefix('laporan')->name('admin.laporan.')->group(function () {
             Route::get('rapor', [LaporanRaporController::class, 'index'])->name('rapor.index');
-
-            // BARU: Mengganti 'validateLock' dan 'rapor.validate-lock'
             Route::post('rapor/validate-submit', [LaporanRaporController::class, 'validateSubmit'])->name('rapor.validate-submit');
-
-            // BARU: Mengganti 'finalLock' dan 'rapor.final-lock'
             Route::post('rapor/final-submit', [LaporanRaporController::class, 'finalSubmit'])->name('rapor.final-submit');
-
             Route::post('rapor/reset/{id}', [LaporanRaporController::class, 'reset'])->name('rapor.reset');
-
-            // Rute untuk download (sudah benar)
             Route::get('rapor/download', [LaporanRaporController::class, 'download'])->name('rapor.download');
         });
 
-        Route::prefix('pengumuman')->as('admin.pengumuman.')->group(function () {
-            Route::get('/', [PengumumanController::class, 'index'])->name('index');
-            Route::get('/create', [PengumumanController::class, 'create'])->name('create');
-            Route::post('/', [PengumumanController::class, 'store'])->name('store');
-            Route::get('/{id}/edit', [PengumumanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [PengumumanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [PengumumanController::class, 'destroy'])->name('destroy');
+        Route::prefix('pengumuman')->group(function () {
+            Route::get('/', [AdminAnnouncementController::class, 'index'])->name('admin.pengumuman.index');
+            Route::post('/', [AdminAnnouncementController::class, 'store'])->name('admin.pengumuman.store');
+            Route::get('/{pengumuman}', [AdminAnnouncementController::class, 'show'])->name('admin.pengumuman.show');
+            Route::put('/{pengumuman}', [AdminAnnouncementController::class, 'update'])->name('admin.pengumuman.update');
+            Route::delete('/{pengumuman}', [AdminAnnouncementController::class, 'destroy'])->name('admin.pengumuman.destroy');
         });
     });
 

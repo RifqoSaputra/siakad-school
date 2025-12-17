@@ -177,6 +177,12 @@ class InputNilaiHarianController extends Controller
     public function getSiswaForInput(NilaiTambahan $nilaiTambahan)
     {
         $kelas = Kelas::where('kelas_id', $nilaiTambahan->kelas_id)->first();
+        if ($nilaiTambahan->status === 'Submitted') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nilai sudah dikunci dan tidak dapat diedit.'
+            ], 403);
+        }
 
         if (!$kelas) {
             return response()->json([
@@ -318,8 +324,19 @@ class InputNilaiHarianController extends Controller
         // Dapatkan data dari GuruMapel untuk Audit Trail dan TA/Semester
         $guruMapel = GuruMapel::find($request->guru_mapel_id);
 
-        // Asumsi user_entry diambil dari user yang login
-        $userEntry = Auth::id(); // Ambil ID user dari tabel users
+        $userEntry = Auth::id();
+        $alreadySubmitted = NilaiTambahan::where('kelas_id', $request->kelas_id)
+            ->where('mapel_id', $request->mapel_id)
+            ->where('tahun_ajaran', $guruMapel->tahun_ajaran)
+            ->where('status', 'Submitted')
+            ->exists();
+
+        if ($alreadySubmitted) {
+            return redirect()->back()->with(
+                'error',
+                'Nilai harian sudah dikunci (Submitted). Tidak dapat menambah tugas baru.'
+            );
+        }
 
         DB::beginTransaction();
         try {

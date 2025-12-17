@@ -65,7 +65,7 @@
 
                     {{-- USERNAME FIELD --}}
                     <div class="field-group">
-                        <label for="username" class="field-label">Username</label>
+                        <label for="username" class="field-label">Masukan Username Anda</label>
 
                         <div class="field-input-wrapper">
                             <input id="username" type="text" name="username" value="{{ old('username') }}"
@@ -81,6 +81,7 @@
 
                     {{-- PASSWORD FIELD (no label sesuai permintaan) --}}
                     <div class="field-group password-group">
+                        <label for="username" class="field-label">Masukan Kata Sandi Anda</label>
 
                         <div class="field-input-wrapper field-input-password">
                             <input id="password" type="password" name="password" value="{{ old('password') }}"

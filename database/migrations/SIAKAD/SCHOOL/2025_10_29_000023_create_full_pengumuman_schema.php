@@ -11,83 +11,97 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Tabel Utama: Pengumuman
-        // (Sudah termasuk kolom 'status' dari file migrasi ke-3)
+        /**
+         * =========================
+         * 1. TABEL PENGUMUMAN
+         * =========================
+         */
         Schema::create('pengumuman', function (Blueprint $table) {
-            $table->increments('id_pengumuman'); // Primary Key (Integer Unsigned)
-            $table->string('judul', 150);
-            $table->text('isi_pengumuman')->nullable();
-            
-            // Kolom Status (Langsung digabung di sini)
-            $table->enum('status', ['draft', 'published'])->default('published');
-            
-            $table->enum('target_role', ['admin', 'guru', 'ortu', 'all'])->default('all');
-            $table->unsignedInteger('id_admin');
+            $table->bigIncrements('id_pengumuman');
+
+            $table->string('judul', 200);
+            $table->longText('isi_pengumuman');
+
+            // Target & Status
+            $table->enum('target_role', ['guru', 'ortu', 'semua'])
+                ->default('semua')
+                ->index();
+
+            $table->enum('status', ['draft', 'scheduled', 'sent'])
+                ->default('draft')
+                ->index();
+
+            // Penjadwalan
+            $table->dateTime('scheduled_at')->nullable()->index();
+            $table->dateTime('sent_at')->nullable();
+
+            // Creator
+            $table->unsignedInteger('created_by')->nullable();
             $table->timestamps();
 
             // Foreign Key
-            $table->foreign('id_admin')
+            $table->foreign('created_by')
                 ->references('users_id')
                 ->on('users')
-                ->onDelete('restrict');
+                ->nullOnDelete();
 
-            // INDEXING
-            // Index 'status' penting karena sering dipakai untuk filter (WHERE status = 'published')
-            $table->index('status'); 
-            $table->index('target_role');
-            $table->index('id_admin');
-            
-            // Tips: Jika sering filter status DAN role bersamaan, pertimbangkan composite index:
-            // $table->index(['status', 'target_role']);
+            // Composite index untuk scheduler
+            $table->index(['status', 'scheduled_at']);
         });
 
-        // 2. Tabel Pivot: Pengumuman User (Tracking Read/Unread)
+        /**
+         * =========================
+         * 2. TABEL PIVOT (READ STATUS)
+         * =========================
+         */
         Schema::create('pengumuman_user', function (Blueprint $table) {
-            $table->increments('id');
-            $table->unsignedInteger('pengumuman_id');
+            $table->bigIncrements('id');
+
+            $table->unsignedBigInteger('pengumuman_id');
             $table->unsignedInteger('users_id');
+
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
 
             // Foreign Keys
             $table->foreign('pengumuman_id')
-                ->references('id_pengumuman') // Pastikan nama kolom PK sama dengan tabel pengumuman
+                ->references('id_pengumuman')
                 ->on('pengumuman')
-                ->onDelete('cascade');
+                ->cascadeOnDelete();
 
             $table->foreign('users_id')
                 ->references('users_id')
                 ->on('users')
-                ->onDelete('cascade');
+                ->cascadeOnDelete();
 
-            // INDEXING
-            // Mencegah duplikasi data user & pengumuman yang sama
-            $table->unique(['pengumuman_id', 'users_id']); 
-            
-            // Optimasi query dashboard: "Tampilkan pengumuman yang BELUM DIBACA oleh USER X"
-            // Daripada index terpisah, composite index lebih cepat untuk query WHERE users_id = ? AND is_read = ?
-            $table->index(['users_id', 'is_read']); 
+            // Cegah duplikasi
+            $table->unique(['pengumuman_id', 'users_id']);
+
+            // Optimasi dashboard
+            $table->index(['users_id', 'is_read']);
         });
 
-        // 3. Tabel Attachments
+        /**
+         * =========================
+         * 3. TABEL ATTACHMENTS
+         * =========================
+         */
         Schema::create('pengumuman_attachments', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedInteger('pengumuman_id');
-            $table->string('nama_file');
-            $table->string('path');
-            $table->unsignedBigInteger('size'); // Dalam bytes
-            $table->string('mime_type')->nullable();
+
+            $table->unsignedBigInteger('pengumuman_id');
+            $table->string('file_name');
+            $table->string('file_path');
+            $table->unsignedBigInteger('file_size');
+            $table->string('file_mime')->nullable();
             $table->timestamps();
 
-            // Foreign Key
             $table->foreign('pengumuman_id')
                 ->references('id_pengumuman')
                 ->on('pengumuman')
-                ->onDelete('cascade');
+                ->cascadeOnDelete();
 
-            // INDEXING
-            // Index ini penting untuk mengambil semua lampiran milik 1 pengumuman dengan cepat
             $table->index('pengumuman_id');
         });
     }
@@ -97,7 +111,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop harus berurutan terbalik untuk menghindari error Foreign Key Constraint
         Schema::dropIfExists('pengumuman_attachments');
         Schema::dropIfExists('pengumuman_user');
         Schema::dropIfExists('pengumuman');
