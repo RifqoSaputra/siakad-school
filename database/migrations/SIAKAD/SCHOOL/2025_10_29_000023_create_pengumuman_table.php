@@ -11,16 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Skip creation if table already exists (avoid conflict with newer pengumuman schema)
-        if (Schema::hasTable('pengumuman')) {
-            return;
-        }
-
         Schema::create('pengumuman', function (Blueprint $table) {
             $table->increments('id_pengumuman');
             $table->string('judul', 150);
             $table->text('isi_pengumuman')->nullable();
             $table->enum('target_role', ['admin', 'guru', 'ortu', 'all'])->default('all');
+            $table->enum('status', ['draft', 'scheduled', 'sent', 'published'])->default('sent');
+            $table->dateTime('scheduled_for')->nullable();
+            $table->dateTime('sent_at')->nullable();
             $table->unsignedInteger('id_admin');
             $table->timestamps();
 
@@ -30,6 +28,9 @@ return new class extends Migration
                 ->onDelete('restrict');
 
             $table->index('target_role');
+            $table->index('status');
+            $table->index('scheduled_for');
+            $table->index('sent_at');
             $table->index('id_admin');
         });
     }

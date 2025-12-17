@@ -16,8 +16,7 @@ return new class extends Migration
             $table->unsignedInteger('users_id'); // Foreign Key
             $table->string('nip', 25)->nullable()->unique(); // Unique (Otomatis Index)
             $table->string('nama_guru', 150);
-            $table->string('alamat_rmh')->nullable();
-            $table->string('kota_rmh', 100)->nullable();
+            $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])->nullable();
             $table->string('no_hp', 13)->nullable();
             $table->string('email', 100)->nullable();
 

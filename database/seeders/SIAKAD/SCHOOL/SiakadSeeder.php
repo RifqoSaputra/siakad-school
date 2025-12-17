@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Database\Seeders\SIAKAD\SCHOOL\PengumumanSeeder;
 
-class SIAKADSeeder extends Seeder
+class SiakadSeeder extends Seeder
 {
     public function run(): void
     {

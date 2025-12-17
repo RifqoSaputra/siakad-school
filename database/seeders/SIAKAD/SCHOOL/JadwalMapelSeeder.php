@@ -13,7 +13,7 @@ class JadwalMapelSeeder extends Seeder
      */
     public function run(): void
     {
-        // CATATAN: TRUNCATE DITANGANI OLEH SIAKADSeeder.php, kita tidak perlu TRUNCATE di sini.
+        // CATATAN: TRUNCATE DITANGANI OLEH SiakadSeeder.php, kita tidak perlu TRUNCATE di sini.
         // Hapus DB::table('jadwal_mapel')->truncate();
 
         // 1. PENENTUAN RENTANG TANGGAL
