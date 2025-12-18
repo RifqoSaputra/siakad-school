@@ -2,8 +2,15 @@
 
 @section('title', 'Manajemen Guru')
 
+@push('styles')
+    <style>
+        .topbar { background: var(--bg-card, #fff); }
+        .page-container { padding-top: 4px; }
+    </style>
+@endpush
+
 @push('scripts')
-    @vite(['resources/js/announcement.js'])
+    @vite(['resources/js/app-ui.js'])
 @endpush
 
 @section('content')
@@ -67,45 +74,30 @@
             </div>
 
             <div class="ann-toolbar__chunk ann-toolbar__chunk--filters">
-                <div class="filters">
-                    <div class="filter" data-filter="status">
-                        <button type="button" class="filter__btn">
-                            <span>{{ $request->get('status') ?: 'Status Aktif' }}</span>
-                            <span class="material-symbols-rounded">arrow_drop_down</span>
-                        </button>
-                        <div class="filter__menu">
-                            <button type="button" class="filter__option" data-value="">
-                                <span class="radio {{ $request->filled('status') ? '' : 'active' }}"></span>Semua Status
-                            </button>
-                            @foreach ($allStatus as $status)
-                                <button type="button" class="filter__option" data-value="{{ $status }}">
-                                    <span class="radio {{ $request->get('status') == $status ? 'active' : '' }}"></span>{{ $status }}
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="filter" data-filter="jenis_kelamin">
-                        <button type="button" class="filter__btn">
-                            <span>{{ $request->get('jenis_kelamin') ?: 'Jenis Kelamin' }}</span>
-                            <span class="material-symbols-rounded">arrow_drop_down</span>
-                        </button>
-                        <div class="filter__menu">
-                            <button type="button" class="filter__option" data-value="">
-                                <span class="radio {{ $request->filled('jenis_kelamin') ? '' : 'active' }}"></span>Semua
-                            </button>
-                            @foreach ($allJenisKelamin as $jk)
-                                <button type="button" class="filter__option" data-value="{{ $jk }}">
-                                    <span class="radio {{ $request->get('jenis_kelamin') == $jk ? 'active' : '' }}"></span>{{ $jk }}
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
+                <x-ui.filter-bar>
+                    <x-ui.filter-dropdown :label="'Status Aktif'" :value="$request->get('status') ?: 'Status Aktif'" filter="status">
+                        <x-ui.filter-option value="" :active="!$request->filled('status')">Semua Status</x-ui.filter-option>
+                        @foreach ($allStatus as $status)
+                            <x-ui.filter-option :value="$status" :active="$request->get('status') == $status">
+                                {{ $status }}
+                            </x-ui.filter-option>
+                        @endforeach
+                    </x-ui.filter-dropdown>
+
+                    <x-ui.filter-dropdown :label="'Jenis Kelamin'" :value="$request->get('jenis_kelamin') ?: 'Jenis Kelamin'" filter="jenis_kelamin">
+                        <x-ui.filter-option value="" :active="!$request->filled('jenis_kelamin')">Semua</x-ui.filter-option>
+                        @foreach ($allJenisKelamin as $jk)
+                            <x-ui.filter-option :value="$jk" :active="$request->get('jenis_kelamin') == $jk">
+                                {{ $jk }}
+                            </x-ui.filter-option>
+                        @endforeach
+                    </x-ui.filter-dropdown>
 
                     <button type="button" class="reset {{ $hasFilters ? 'show' : '' }}" id="filter-reset">
                         <span class="material-symbols-rounded">refresh</span>
                         Reset
                     </button>
-                </div>
+                </x-ui.filter-bar>
             </div>
 
             <div class="ann-toolbar__chunk ann-toolbar__chunk--pagination">
@@ -130,18 +122,17 @@
         </form>
 
         <div class="ann-table-scroll">
-            <div class="table table--guru">
-                <div class="table__head">
-                    <div class="cell--no">No.</div>
-                    <div class="table__head-main">
-                        <div>Status</div>
-                        <div>ID Guru</div>
-                        <div>Nama</div>
-                        <div>Jenis Kelamin</div>
-                        <div>Email</div>
-                    </div>
+            <div class="ann-table ann-table--guru">
+                <div class="ann-table__head">
+                    <div class="cell cell--no">No.</div>
+                    <div class="cell cell--status">Status</div>
+                    <div class="cell">Kode Guru</div>
+                    <div class="cell">Nama</div>
+                    <div class="cell">Jenis Kelamin</div>
+                    <div class="cell cell--email">Email</div>
                 </div>
-                <div class="table__body">
+
+                <div class="ann-table__body">
                     @forelse ($guruData as $idx => $guru)
                         @php
                             $statusValue = ($guru->user_status ?? 1) ? 'aktif' : 'nonaktif';
@@ -152,40 +143,40 @@
                             ];
                             $rowNumber = ($guruData->firstItem() ?? 0) + $idx;
                             $formattedGuruId = 'G' . str_pad($guru->id_guru ?? 0, 4, '0', STR_PAD_LEFT);
+                            $kodeGuru = $guru->kode_guru ?? $formattedGuruId;
                             $gender = $guru->jenis_kelamin ?? 'Tidak diketahui';
                             $emailPrefix = $guru->email ? explode('@', $guru->email)[0] : \Illuminate\Support\Str::slug($guru->nama_guru ?? 'guru', '.');
                             $emailDisplay = $emailPrefix ? $emailPrefix . '@mutiarabangsa.ac.id' : 'Email belum diisi';
                         @endphp
-                        <div class="table__row ann-row--clickable"
-                            data-guru-id="{{ $formattedGuruId }}"
+                        <div class="ann-row ann-row--clickable"
+                            data-guru-id="{{ $kodeGuru }}"
+                            data-guru-kode="{{ $kodeGuru }}"
                             data-guru-name="{{ $guru->nama_guru }}"
-                            data-guru-nip="{{ $guru->nip ?? '' }}"
+                            data-guru-nip="{{ $guru->kode_guru ?? '' }}"
                             data-guru-email="{{ $emailDisplay }}"
                             data-guru-gender="{{ $gender }}"
                             data-guru-status="{{ $statusMeta['label'] }}">
                             <div class="cell ann-meta__muted cell--no">{{ $rowNumber }}</div>
-                            <div class="table__row-main">
-                                <div class="cell cell--status ann-status-cell">
-                                    <div class="ann-status-dropdown" data-status-dropdown data-guru-id="{{ $formattedGuruId }}"
-                                        data-guru-name="{{ $guru->nama_guru }}" data-current-status="{{ $statusMeta['label'] }}">
-                                        <button type="button" class="ann-status status ann-status--action {{ $statusMeta['class'] }}"
-                                            data-status-trigger>
-                                            <span class="ann-status__label">{{ $statusMeta['label'] }}</span>
-                                            <span class="material-symbols-rounded ann-status__caret">arrow_drop_down</span>
-                                        </button>
-                                        <div class="ann-status-menu">
-                                            <button type="button" class="ann-status-menu__item" data-status-option="Aktif">Aktif</button>
-                                            <button type="button" class="ann-status-menu__item" data-status-option="Nonaktif">Nonaktif</button>
-                                        </div>
+                            <div class="cell cell--status ann-status-cell">
+                                <div class="ann-status-dropdown" data-status-dropdown data-guru-id="{{ $formattedGuruId }}"
+                                    data-guru-name="{{ $guru->nama_guru }}" data-current-status="{{ $statusMeta['label'] }}">
+                                    <button type="button" class="ann-status status ann-status--action {{ $statusMeta['class'] }}"
+                                        data-status-trigger>
+                                        <span class="ann-status__label">{{ $statusMeta['label'] }}</span>
+                                        <span class="material-symbols-rounded ann-status__caret">arrow_drop_down</span>
+                                    </button>
+                                    <div class="ann-status-menu">
+                                        <button type="button" class="ann-status-menu__item" data-status-option="Aktif">Aktif</button>
+                                        <button type="button" class="ann-status-menu__item" data-status-option="Nonaktif">Nonaktif</button>
                                     </div>
                                 </div>
-                                <div class="cell ann-meta__muted cell--id">{{ $formattedGuruId }}</div>
-                                <div class="cell ann-title-cell">
-                                    <div class="ann-row__title">{{ $guru->nama_guru }}</div>
-                                </div>
-                                <div class="cell ann-meta__muted">{{ $gender }}</div>
-                                <div class="cell ann-meta__muted">{{ $emailDisplay }}</div>
                             </div>
+                            <div class="cell ann-meta__muted cell--id">{{ $kodeGuru }}</div>
+                            <div class="cell ann-title-cell">
+                                <div class="ann-row__title">{{ $guru->nama_guru }}</div>
+                            </div>
+                            <div class="cell ann-meta__muted">{{ $gender }}</div>
+                            <div class="cell ann-meta__muted cell--email">{{ $emailDisplay }}</div>
                         </div>
                     @empty
                         <div class="ann-empty">Belum ada data guru.</div>

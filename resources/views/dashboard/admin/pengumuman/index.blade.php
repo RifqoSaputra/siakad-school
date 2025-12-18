@@ -3,7 +3,7 @@
 @section('title', 'Pengumuman')
 
 @push('scripts')
-    @vite(['resources/js/announcement.js'])
+    @vite(['resources/js/app-ui.js'])
 @endpush
 
 @section('content')
@@ -35,7 +35,7 @@
                 <div class="filter__menu">
                     @foreach ($dateMap as $val => $label)
                         <button class="filter__option" data-value="{{ $val }}">
-                            <span class="ann-radio {{ $dateRange === $val ? 'active' : '' }}"></span>{{ $label }}
+                            <span class="radio {{ $dateRange === $val ? 'active' : '' }}"></span>{{ $label }}
                         </button>
                     @endforeach
                 </div>
@@ -48,12 +48,13 @@
             </button>
             <div class="filter__menu">
                 @foreach (['all'=>'Semua','guru'=>'Guru','ortu'=>'Ortu'] as $val => $label)
+                    @php $isActive = $target === $val || ($target === 'any' && $val === 'all'); @endphp
                     <button class="filter__option {{ $val === 'all' ? 'filter__option--divider' : '' }}" data-value="{{ $val }}">
-                            <span class="ann-radio {{ $target === $val ? 'active' : '' }}"></span>{{ $label }}
-                        </button>
-                    @endforeach
-                </div>
+                        <span class="radio {{ $isActive ? 'active' : '' }}"></span>{{ $label }}
+                    </button>
+                @endforeach
             </div>
+        </div>
 
             <div class="filter" data-filter="status">
                 <button class="filter__btn">
@@ -63,7 +64,7 @@
                 <div class="filter__menu">
                     @foreach (['any'=>'Semua','sent'=>'Dikirim','scheduled'=>'Dijadwalkan','draft'=>'Draft'] as $val => $label)
                         <button class="filter__option {{ $val === 'any' ? 'filter__option--divider' : '' }}" data-value="{{ $val }}">
-                            <span class="ann-radio {{ $status === $val ? 'active' : '' }}"></span>{{ $label }}
+                            <span class="radio {{ $status === $val ? 'active' : '' }}"></span>{{ $label }}
                         </button>
                     @endforeach
                 </div>
@@ -98,13 +99,14 @@
 
         <div class="ann-table">
             <div class="ann-table__head">
+                <div class="cell cell--no">No.</div>
                 <div>Waktu</div>
                 <div>Penerima</div>
                 <div>Subjek</div>
                 <div class="ann-status-head">Status</div>
             </div>
         <div class="ann-table__body">
-            @forelse ($pengumuman as $row)
+            @forelse ($pengumuman as $idx => $row)
                 @php
                         $attachments = $row->attachments->map(function($att) {
                             $mime = $att->file_mime ?? $att->mime_type ?? '';
@@ -114,6 +116,8 @@
                             return ['icon'=>$icon, 'label'=>$label, 'url'=>$url];
                         });
                     $displayTitle = preg_replace('/\s+#\d+$/', '', $row->judul);
+                    $nextStatus = optional($pengumuman[$idx + 1] ?? null)->status;
+                    $hasStatusDivider = $nextStatus !== null && $nextStatus !== $row->status;
                     $detailPayload = [
                         'id' => $row->getKey(),
                         'judul' => $row->judul,
@@ -139,7 +143,8 @@
                         }),
                     ];
                 @endphp
-                <div class="ann-row {{ $attachments->count() ? 'has-attachments' : '' }}" data-detail='@json($detailPayload)'>
+                <div class="ann-row {{ $attachments->count() ? 'has-attachments' : '' }} {{ $hasStatusDivider ? 'status-divider' : '' }}" data-detail='@json($detailPayload)'>
+                    <div class="cell cell--no">{{ ($pengumuman->firstItem() ?? 0) + $loop->index }}</div>
                     <div class="cell">{{ $row->waktuSingkat() }}</div>
                     <div class="cell">{{ $row->targetLabel() }}</div>
                     <div class="cell ann-title-cell">
@@ -248,7 +253,7 @@
                     </label>
                 </div>
 
-                <div class="field-inline" id="schedule_section" style="display:none;">
+                <div class="field-inline is-hidden" id="schedule_section">
                     <div class="field">
                         <label class="field__label" for="scheduled_display_text">Tanggal</label>
                         <div class="ann-datetime">
@@ -336,7 +341,7 @@
                                 <span class="material-symbols-rounded">upload</span> Unggah Lampiran
                             </button>
                         </div>
-                        <div class="ann-attach__error" id="attachments-error" style="display:none">Ukuran lampiran melebihi 10MB, silahkan unggah kembali.</div>
+                        <div class="ann-attach__error is-hidden" id="attachments-error">Ukuran lampiran melebihi 10MB, silahkan unggah kembali.</div>
                         <input type="file" id="attachments_input" name="attachments[]" multiple style="display:none" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif">
                     </div>
                     <div class="ann-attach__list" id="attachments_list"></div>

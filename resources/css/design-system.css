@@ -7,6 +7,37 @@
  * contain generic, prefix-less aliases like .btn, .select,
  * .table, .toolbar__row, etc.). */
 
-@import './announcement.css';
+@import './components.css';
 
 /* Place any future global overrides or tokens below this line. */
+
+:root {
+    /* Core palette */
+    --color-bg: #ffffff;
+    --color-surface: #f7f8fa;
+    --color-border: #dfe4f5;
+    --color-text: #323a48;
+    --color-muted: #627795;
+    --color-primary: #4a46e0;
+    --color-primary-strong: #5c6cff;
+    --color-success: #16a34a;
+    --color-success-bg: #dcfce7;
+    --color-scheduled: #4a46e0;
+    --color-scheduled-bg: #e1e8fe;
+    --color-draft: #627795;
+    --color-draft-bg: #eceef2;
+    --color-surface-strong: #eef2ff;
+    --color-border-strong: #e6e9f2;
+    --color-text-strong: #111827;
+    --color-muted-strong: #4b5563;
+
+    /* Shape & space */
+    --radius-card: 14px;
+    --radius-btn: 10px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+}

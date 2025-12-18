@@ -3,7 +3,7 @@
 @section('title', 'Notifikasi Pengumuman')
 
 @push('scripts')
-    @vite(['resources/js/announcement.js'])
+    @vite(['resources/js/app-ui.js'])
 @endpush
 
 @section('content')

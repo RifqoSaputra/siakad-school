@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('guru', function (Blueprint $table) {
             $table->increments('id_guru'); // Primary Key (Otomatis Index)
             $table->unsignedInteger('users_id'); // Foreign Key
-            $table->string('nip', 25)->nullable()->unique(); // Unique (Otomatis Index)
+            $table->string('kode_guru', 25)->nullable()->unique(); // Unique (Otomatis Index)
             $table->string('nama_guru', 150);
             $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])->nullable();
             $table->string('no_hp', 13)->nullable();

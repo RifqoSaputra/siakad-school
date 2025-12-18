@@ -17,8 +17,8 @@
                 <div class="guru-detail__value" id="guru-detail-id">-</div>
             </div>
             <div class="guru-detail__row">
-                <div class="guru-detail__label">NIP</div>
-                <div class="guru-detail__value" id="guru-detail-nip">-</div>
+                <div class="guru-detail__label">Kode Guru</div>
+                <div class="guru-detail__value" id="guru-detail-kode">-</div>
             </div>
             <div class="guru-detail__row">
                 <div class="guru-detail__label">Jenis Kelamin</div>

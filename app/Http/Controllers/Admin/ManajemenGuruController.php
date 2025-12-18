@@ -28,13 +28,13 @@ class ManajemenGuruController extends Controller
             ->select('guru.*', 'users.status as user_status')
             ->orderBy('guru.id_guru', 'asc');
 
-        // Pencarian Nama / NIP
+        // Pencarian Nama / Kode Guru
         if ($request->filled('search')) {
             $search = $request->input('search');
 
             $query->where(function ($q) use ($search) {
                 $q->where('nama_guru', 'like', '%' . $search . '%')
-                  ->orWhere('nip', 'like', '%' . $search . '%');
+                  ->orWhere('kode_guru', 'like', '%' . $search . '%');
             });
         }
 

@@ -3,68 +3,15 @@
 @section('title', 'Manajemen Siswa')
 
 @push('scripts')
-    @vite(['resources/js/announcement.js'])
+    @vite(['resources/js/app-ui.js'])
 @endpush
 
 @section('content')
     @php
         $hasFilters = $request->filled('search') || $request->filled('kelas') || $request->filled('jenis_kelamin');
-        $totalNonAktif = $totalSiswaNonAktif ?? 0;
-        $totalAktif = $totalSiswaAktif ?? 0;
-        $totalAll = $totalAll ?? $totalAktif;
-        $genderStats = $genderStats ?? [
-            'Laki-laki' => 0,
-            'Perempuan' => 0,
-        ];
-        $prodiStats = $prodiStats ?? [];
-        $fmtStat = fn($v) => isset($v) ? number_format((int) $v, 0, ',', '.') : '-';
     @endphp
 
     <div class="ann-layout ann-layout--siswa">
-        <div class="ann-summary-grid">
-            <div class="ann-summary-card ann-summary-card--stat ann-summary-card--with-meta ann-summary-card--siswa">
-                <div class="ann-summary-card__body">
-                    <div class="ann-summary-card__label">Total Seluruh Siswa</div>
-                    <div class="ann-summary-card__value ann-summary-card__value--xl">{{ $fmtStat($totalAll) }}</div>
-                    <div class="ann-summary-card__divider ann-summary-card__divider--wide"></div>
-                    <div class="ann-summary-card__meta ann-summary-card__meta--two-col">
-                        @foreach ($genderStats as $label => $value)
-                            <div class="ann-summary-card__meta-item">
-                                <div class="ann-summary-card__meta-label">{{ $label }}</div>
-                                <div class="ann-summary-card__meta-value">{{ $fmtStat($value) }}</div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            @foreach ($prodiStats as $prodi)
-                <div class="ann-summary-card ann-summary-card--stat ann-summary-card--with-meta ann-summary-card--prodi">
-                    <div class="ann-summary-card__body">
-                        <div class="ann-summary-card__header">
-                            <div class="ann-summary-card__label">{{ $prodi['title'] }}</div>
-                            <div class="ann-summary-card__badge {{ $prodi['icon']['variant'] ?? '' }}">
-                                <span class="material-symbols-rounded">{{ $prodi['icon']['symbol'] ?? 'school' }}</span>
-                            </div>
-                        </div>
-                        <div class="ann-summary-card__value-line">
-                            <div class="ann-summary-card__value ann-summary-card__value--lg">{{ $fmtStat($prodi['total']) }}</div>
-                            <span class="ann-summary-card__value-icon material-symbols-rounded">group</span>
-                        </div>
-                        <div class="ann-summary-card__divider ann-summary-card__divider--wide"></div>
-                        <div class="ann-summary-card__meta ann-summary-card__meta--inline">
-                            @foreach ($prodi['levels'] as $level)
-                                <div class="ann-summary-card__meta-item">
-                                    <div class="ann-summary-card__meta-label">{{ $level['label'] }}</div>
-                                    <div class="ann-summary-card__meta-value">{{ $fmtStat($level['value']) }}</div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
         <form method="GET" action="{{ route('admin.siswa') }}" class="ann-toolbar__row ann-toolbar__standalone ann-toolbar--inline">
             <input type="hidden" name="tahun_ajaran" value="{{ $tahunAjaranAktif }}">
             <div class="ann-toolbar__chunk ann-toolbar__chunk--search">
@@ -115,7 +62,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="ann-reset {{ $hasFilters ? 'show' : '' }}" id="filter-reset">
+                    <button type="button" class="ann-reset" id="filter-reset">
                         <span class="material-symbols-rounded">refresh</span>
                         Reset
                     </button>
@@ -130,43 +77,43 @@
                         <span class="ann-pagination__total">dari {{ $siswaData->total() }}</span>
                     </span>
                     <div class="ann-pagination__arrows">
-                        <button class="ann-icon-btn" data-nav-url="{{ $siswaData->previousPageUrl() }}" @disabled(!$siswaData->previousPageUrl())>
+                        <a class="ann-icon-btn {{ $siswaData->previousPageUrl() ? '' : 'disabled' }}"
+                            href="{{ $siswaData->previousPageUrl() ?: '#' }}"
+                            @if(!$siswaData->previousPageUrl()) aria-disabled="true" @endif>
                             <span class="material-symbols-rounded">chevron_left</span>
-                        </button>
-                        <button class="ann-icon-btn" data-nav-url="{{ $siswaData->nextPageUrl() }}" @disabled(!$siswaData->nextPageUrl())>
+                        </a>
+                        <a class="ann-icon-btn {{ $siswaData->nextPageUrl() ? '' : 'disabled' }}"
+                            href="{{ $siswaData->nextPageUrl() ?: '#' }}"
+                            @if(!$siswaData->nextPageUrl()) aria-disabled="true" @endif>
                             <span class="material-symbols-rounded">chevron_right</span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
         </form>
-
-        <div class="ann-section">
-            <div class="ann-table ann-table--siswa">
+ <div class="ann-table ann-table--siswa">
                 <div class="ann-table__head">
-                    <div>No.</div>
-                    <div>NIS</div>
-                    <div>Nama</div>
-                    <div>Kelas</div>
-                    <div>Jenis Kelamin</div>
-                    <div>Tempat & Tanggal Lahir</div>
+                    <div class="cell cell--no">No.</div>
+                    <div class="cell">NIS</div>
+                    <div class="cell">Nama</div>
+                    <div class="cell">Kelas</div>
+                    <div class="cell">Jenis Kelamin</div>
+                    <div class="cell">Tanggal Lahir</div>
                 </div>
                 <div class="ann-table__body">
                     @forelse ($siswaData as $index => $siswa)
                         @php
-                            $ttlDate = $siswa->tgl_lahir ? \Carbon\Carbon::parse($siswa->tgl_lahir)->format('d M Y') : null;
-                            $ttlText = trim(($siswa->tempat_lahir ?? '') . ', ' . ($ttlDate ?? ''));
-                            if ($ttlText === ',' || $ttlText === '') {
-                                $ttlText = '-';
-                            }
-                        @endphp
-                        <div class="ann-row">
-                            <div class="cell">{{ $siswaData->firstItem() + $index }}</div>
-                            <div class="cell ann-meta__muted">{{ $siswa->nis }}</div>
-                            <div class="cell ann-row__title">{{ $siswa->nama }}</div>
-                            <div class="cell">{{ $siswa->kelas_sekarang }}</div>
-                            <div class="cell">{{ $siswa->jenis_kelamin ?? '-' }}</div>
-                            <div class="cell">{{ $ttlText }}</div>
+                                $ttlDate = $siswa->tgl_lahir ? \Carbon\Carbon::parse($siswa->tgl_lahir)->format('d M Y') : '-';
+                                $jk = $siswa->jenis_kelamin ?? '-';
+                                $rowNumber = ($siswaData->firstItem() ?? 0) + $index;
+                            @endphp
+                            <div class="ann-row">
+                                <div class="cell ann-meta__muted cell--no">{{ $rowNumber }}</div>
+                                <div class="cell ann-meta__muted">{{ $siswa->nis }}</div>
+                                <div class="cell ann-row__title">{{ $siswa->nama }}</div>
+                                <div class="cell">{{ $siswa->kelas_sekarang }}</div>
+                                <div class="cell">{{ $jk }}</div>
+                                <div class="cell">{{ $ttlDate }}</div>
                         </div>
                     @empty
                         <div class="ann-empty">Tidak ada data siswa untuk filter yang dipilih.</div>

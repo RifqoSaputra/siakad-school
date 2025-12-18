@@ -156,7 +156,7 @@ class AdminAnnouncementController extends Controller
         $validated = $request->validate([
             'judul' => ['required', 'string', 'max:200'],
             'isi_pengumuman' => ['required', 'string', 'max:2000'],
-            'target_role' => ['required', Rule::in(['guru', 'ortu', 'all', 'semua'])],
+            'target_role' => ['required', Rule::in(['guru', 'ortu', 'all'])],
             'scheduled_for' => ['nullable', 'date', 'after:now'],
             'attachments.*' => ['nullable', 'file', 'max:10240'],
         ], [], [
@@ -165,11 +165,6 @@ class AdminAnnouncementController extends Controller
             'target_role' => 'Penerima',
             'scheduled_for' => 'Jadwal',
         ]);
-
-        // Normalisasi target_role ke nilai DB
-        if (($validated['target_role'] ?? '') === 'all') {
-            $validated['target_role'] = 'semua';
-        }
 
         return $validated;
     }
