@@ -25,7 +25,8 @@ class PengumumanUser extends Model
 
     public function pengumuman()
     {
-        return $this->belongsTo(Pengumuman::class, 'pengumuman_id', 'id_pengumuman');
+        $localKey = Pengumuman::primaryKeyColumn() ?: 'id_pengumuman';
+        return $this->belongsTo(Pengumuman::class, 'pengumuman_id', $localKey);
     }
 
     public function user()

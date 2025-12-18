@@ -19,13 +19,13 @@ class Pengumuman extends Model
         'isi_pengumuman',
         'target_role',
         'status',
-        'scheduled_for',
+        'scheduled_at',
         'sent_at',
-        'id_admin',
+        'created_by',
     ];
 
     protected $casts = [
-        'scheduled_for' => 'datetime',
+        'scheduled_at' => 'datetime',
         'sent_at' => 'datetime',
     ];
 
@@ -59,7 +59,7 @@ class Pengumuman extends Model
     // Relationships
     public function admin()
     {
-        return $this->belongsTo(User::class, 'id_admin', 'users_id');
+        return $this->belongsTo(User::class, 'created_by', 'users_id');
     }
 
     public function attachments()
@@ -84,6 +84,10 @@ class Pengumuman extends Model
 
     public function scopeFilterTargetRole(Builder $query, ?string $role): Builder
     {
+        if ($role === 'all') {
+            $role = 'semua';
+        }
+
         if (!$role || $role === 'semua' || $role === 'any') {
             return $query;
         }
@@ -156,7 +160,7 @@ class Pengumuman extends Model
 
     public function waktuSingkat(): string
     {
-        $date = $this->sent_at ?? $this->scheduled_for ?? $this->created_at;
+        $date = $this->sent_at ?? $this->scheduled_at ?? $this->created_at;
         if (!$date) {
             return '-';
         }
@@ -169,7 +173,18 @@ class Pengumuman extends Model
 
     public function metaDateLong(): string
     {
-        $date = $this->sent_at ?? $this->scheduled_for ?? $this->created_at;
+        $date = $this->sent_at ?? $this->scheduled_at ?? $this->created_at;
         return $date ? $date->locale('id')->translatedFormat('j M Y, H.i') : '-';
+    }
+
+    // Aliases for backward compatibility with UI code that uses scheduled_for
+    public function getScheduledForAttribute()
+    {
+        return $this->scheduled_at;
+    }
+
+    public function setScheduledForAttribute($value): void
+    {
+        $this->attributes['scheduled_at'] = $value;
     }
 }

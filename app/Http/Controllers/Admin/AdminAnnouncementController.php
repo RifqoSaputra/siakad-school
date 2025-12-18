@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SIAKAD\SCHOOL\Pengumuman;
 use App\Models\SIAKAD\SCHOOL\PengumumanAttachment;
+use App\Models\SIAKAD\SCHOOL\PengumumanUser;
+use App\Models\SIAKAD\SCHOOL\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +18,7 @@ class AdminAnnouncementController extends Controller
 {
     public function index(Request $request)
     {
+        $this->backfillSentAnnouncements();
         $this->finalizeDueAnnouncements();
 
         $dateRange = $request->query('date_range', 'any');
@@ -100,11 +103,12 @@ class AdminAnnouncementController extends Controller
             'status' => $status,
             'scheduled_at' => !empty($data['scheduled_at']) ? Carbon::parse($data['scheduled_at']) : null,
             'sent_at' => $status === 'sent' ? now() : null,
-            'id_admin' => Auth::user()->users_id,
+            'created_by' => Auth::user()->users_id,
         ];
 
         $announcement = Pengumuman::create($payload);
         $this->handleAttachments($request, $announcement);
+        $this->syncRecipients($announcement);
 
         return redirect()->route('admin.pengumuman.index')->with('success', 'Pengumuman berhasil dibuat.');
     }
@@ -113,6 +117,7 @@ class AdminAnnouncementController extends Controller
     {
         $data = $this->validatePayload($request);
         $status = $request->input('action_status', $pengumuman->status);
+        $wasSent = $pengumuman->status === 'sent';
 
         $payload = [
             'judul' => $data['judul'],
@@ -123,9 +128,16 @@ class AdminAnnouncementController extends Controller
             'sent_at' => $status === 'sent' ? now() : $pengumuman->sent_at,
         ];
 
+        if (!$pengumuman->created_by) {
+            $payload['created_by'] = Auth::user()->users_id;
+        }
+
         $pengumuman->update($payload);
         $this->removeAttachments($request, $pengumuman);
         $this->handleAttachments($request, $pengumuman);
+        if ($pengumuman->status === 'sent' && !$wasSent) {
+            $this->syncRecipients($pengumuman);
+        }
 
         return redirect()->route('admin.pengumuman.index')->with('success', 'Pengumuman berhasil diperbarui.');
     }
@@ -150,7 +162,7 @@ class AdminAnnouncementController extends Controller
 
     private function validatePayload(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'judul' => ['required', 'string', 'max:200'],
             'isi_pengumuman' => ['required', 'string', 'max:2000'],
             'target_role' => ['required', Rule::in(['guru', 'ortu', 'all'])],
@@ -162,6 +174,13 @@ class AdminAnnouncementController extends Controller
             'target_role' => 'Penerima',
             'scheduled_at' => 'Jadwal',
         ]);
+
+        // Normalisasi target 'all' -> 'semua' agar sesuai enum DB
+        if (($data['target_role'] ?? '') === 'all') {
+            $data['target_role'] = 'semua';
+        }
+
+        return $data;
     }
 
     private function removeAttachments(Request $request, Pengumuman $announcement): void
@@ -219,13 +238,86 @@ class AdminAnnouncementController extends Controller
     private function finalizeDueAnnouncements(): void
     {
         $now = Carbon::now();
-        Pengumuman::where('status', 'scheduled')
+        $dueAnnouncements = Pengumuman::where('status', 'scheduled')
             ->whereNotNull('scheduled_at')
             ->where('scheduled_at', '<=', $now)
-            ->update([
+            ->get();
+
+        foreach ($dueAnnouncements as $announcement) {
+            $announcement->update([
                 'status' => 'sent',
                 'sent_at' => $now,
                 'updated_at' => $now,
             ]);
+            $this->syncRecipients($announcement);
+        }
+    }
+
+    /**
+     * Buat entri pengumuman_user untuk penerima sesuai target role.
+     */
+    private function syncRecipients(Pengumuman $announcement): void
+    {
+        if ($announcement->status !== 'sent') {
+            return;
+        }
+
+        $target = $announcement->target_role === 'all' ? 'semua' : $announcement->target_role;
+        $roleMap = match ($target) {
+            'guru' => ['Guru'],
+            'ortu' => ['Orang Tua'],
+            'semua', 'all' => ['Guru', 'Orang Tua'],
+            default => ['Guru', 'Orang Tua'],
+        };
+
+        $userIds = User::whereHas('roles', function ($q) use ($roleMap) {
+            $q->whereIn('nama_role', $roleMap);
+        })->pluck('users_id')->all();
+
+        if (empty($userIds)) {
+            return;
+        }
+
+        $announcementId = $announcement->getAttribute(Pengumuman::primaryKeyColumn() ?: $announcement->getKeyName()) ?? $announcement->getKey();
+
+        $existing = PengumumanUser::where('pengumuman_id', $announcementId)->pluck('users_id')->all();
+        $now = now();
+        $newRows = [];
+
+        foreach ($userIds as $uid) {
+            if (in_array($uid, $existing, true)) {
+                continue;
+            }
+            $newRows[] = [
+                'pengumuman_id' => $announcementId,
+                'users_id' => $uid,
+                'is_read' => false,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (!empty($newRows)) {
+            PengumumanUser::insert($newRows);
+        }
+    }
+
+    /**
+     * Pastikan pengumuman berstatus sent sudah memiliki entri penerima.
+     */
+    private function backfillSentAnnouncements(): void
+    {
+        $primaryKey = Pengumuman::primaryKeyColumn() ?: 'id_pengumuman';
+        $annIdsWithRecipients = PengumumanUser::pluck('pengumuman_id')->unique()->all();
+
+        $missingAnnouncements = Pengumuman::where('status', 'sent')
+            ->when(!empty($annIdsWithRecipients), function ($q) use ($primaryKey, $annIdsWithRecipients) {
+                $q->whereNotIn($primaryKey, $annIdsWithRecipients);
+            })
+            ->get();
+
+        foreach ($missingAnnouncements as $announcement) {
+            $this->syncRecipients($announcement);
+        }
     }
 }
