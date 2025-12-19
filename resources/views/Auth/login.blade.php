@@ -53,12 +53,13 @@
                 Sistem Akademik SMK Mutiara Bangsa 1
             </p>
 
-            {{-- GLOBAL ERROR --}}
-            @if ($errors->has('username'))
-                <p class="field-error-text" style="margin-bottom: 16px;">
-                    {{ $errors->first('username') }}
-                </p>
-            @endif
+                @if (session('password_reset_success'))
+                    <div class="toast toast-success" id="resetToast">
+                        <span class="material-symbols-rounded">check_circle</span>
+                        <div class="toast-text">{{ session('password_reset_success') }}</div>
+                        <button type="button" class="toast-close" aria-label="Tutup notifikasi">&times;</button>
+                    </div>
+                @endif
 
             <form method="POST"
                   action="{{ route('login.process') }}"
@@ -66,28 +67,25 @@
                   id="loginForm">
                 @csrf
 
-                {{-- USERNAME FIELD --}}
-                <div class="field-group">
-                    <label for="username" class="field-label">Username</label>
+                    {{-- USERNAME FIELD --}}
+                    <div class="field-group">
+                        <label for="email" class="field-label">Email</label>
 
-                    <div class="field-input-wrapper">
-                        <input id="username"
-                               type="text"
-                               name="username"
-                               value="{{ old('username') }}"
-                               placeholder="Username..."
-                               class="field-input @error('username') field-input-error @enderror"
-                               autocomplete="username"
-                               autofocus>
+                        <div class="field-input-wrapper">
+                            <input id="email" type="email" name="email" value="{{ session('login_email', old('email')) }}"
+                                placeholder="Email..."
+                                class="field-input @error('email') field-input-error @enderror"
+                                autocomplete="email" autofocus>
+                        </div>
+
+                        @error('email')
+                            <p class="field-error-text">{{ $message }}</p>
+                        @enderror
                     </div>
 
-                    @error('username')
-                        <p class="field-error-text">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- PASSWORD FIELD (no label sesuai permintaan) --}}
-                <div class="field-group password-group">
+                    {{-- PASSWORD FIELD --}}
+                    <div class="field-group password-group">
+                        <label for="password" class="field-label">Kata Sandi</label>
 
                     <div class="field-input-wrapper field-input-password">
                         <input id="password"
@@ -103,11 +101,15 @@
                         </button>
                     </div>
 
-                    {{-- error khusus password --}}
-                    @error('password')
-                        <p class="field-error-text">{{ $message }}</p>
-                    @enderror
-                </div>
+                        {{-- error khusus password --}}
+                        @error('password')
+                            <p class="field-error-text">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="helper-row helper-row-compact">
+                        <a class="text-link" href="{{ route('password.request') }}">Lupa kata sandi?</a>
+                    </div>
 
                 {{-- LOGIN BUTTON --}}
                 <button type="submit"
@@ -123,18 +125,20 @@
 
 </div>
 
-<script>
-(function () {
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const loginButton   = document.getElementById('loginButton');
-    const toggleButton  = document.querySelector('.password-toggle');
-    const toggleIcon    = toggleButton?.querySelector('.material-symbols-rounded');
+    <script>
+        (function() {
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const loginButton = document.getElementById('loginButton');
+            const toggleButton = document.querySelector('.password-toggle');
+            const toggleIcon = toggleButton?.querySelector('.material-symbols-rounded');
+            const toast = document.getElementById('resetToast');
+            const toastClose = toast?.querySelector('.toast-close');
 
-    function updateButtonState() {
-        const canSubmit =
-            usernameInput.value.trim() !== '' &&
-            passwordInput.value.trim() !== '';
+            function updateButtonState() {
+                const canSubmit =
+                    emailInput.value.trim() !== '' &&
+                    passwordInput.value.trim() !== '';
 
         if (canSubmit) {
             loginButton.disabled = false;
@@ -147,20 +151,26 @@
         }
     }
 
-    usernameInput.addEventListener("input", updateButtonState);
-    passwordInput.addEventListener("input", updateButtonState);
+            emailInput.addEventListener("input", updateButtonState);
+            passwordInput.addEventListener("input", updateButtonState);
 
     updateButtonState();
 
-    if (toggleButton) {
-        toggleButton.addEventListener('click', function () {
-            const showing = passwordInput.type === 'text';
-            passwordInput.type = showing ? 'password' : 'text';
-            toggleIcon.textContent = showing ? 'visibility_off' : 'visibility';
-        });
-    }
-})();
-</script>
+            if (toggleButton) {
+                toggleButton.addEventListener('click', function() {
+                    const showing = passwordInput.type === 'text';
+                    passwordInput.type = showing ? 'password' : 'text';
+                    toggleIcon.textContent = showing ? 'visibility_off' : 'visibility';
+                });
+            }
+
+            if (toast) {
+                const hideToast = () => toast.remove();
+
+                toastClose?.addEventListener('click', hideToast);
+            }
+        })();
+    </script>
 
 </body>
 </html>

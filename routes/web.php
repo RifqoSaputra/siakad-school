@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Route;
 // AUTH CONTROLLER
 // ===============================
 use App\Http\Controllers\Auth\LoginController;
-
-// ===============================
-// DASHBOARD CONTROLLER (GLOBAL)
-// ===============================
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\DashboardController;
 
 // ===============================
@@ -53,6 +50,12 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login.pag
 
 // Proses login
 Route::post('/login', [LoginController::class, 'login'])->name('login.process');
+
+// Lupa kata sandi
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset.form');
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.reset');
 
 // Logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
