@@ -1,75 +1,62 @@
-# Siakad School
+# SIAKAD School
 
-## Tujuan
-Dokumentasi ini menjelaskan langkah-langkah untuk menyalin (clone) repository dan menjalankan migrasi serta *seeding* Laravel, memastikan skema dan data awal sistem sesuai dengan kebutuhan proyek.
+Sistem akademik SMK Mutiara Bangsa 1 berbasis Laravel.
 
----
+## Tech Stack
+- Laravel 12
+- PHP 8.3+
+- MySQL/MariaDB
 
-## Prerequisites (Persyaratan Awal)
-1.  **Git / GitHub CLI**
-2.  **PHP 8.3**
-3.  **Composer** (Package Manager PHP)
-4.  **Laravel** (Framework)
-5.  **Web Server & Database:**
-    * Sistem Operasi: Docker, Laragon, XAMPP, atau Vagrant (Laravel Sail disarankan).
-    * Database: **MySQL / MariaDB** (Sesuaikan dengan koneksi yang digunakan di `.env`).
-
----x
-
-## 🚀 Langkah-Langkah Instalasi dan Setup
-
-### 1. Salin Repository (Clone Repo)
-Lakukan *clone* repository GitHub ke folder lokal Anda:
+## Instalasi
+1) Clone repository
 ```bash
-git clone [https://github.com/RifqoSaputra/siakad-school.git](https://github.com/RifqoSaputra/siakad-school.git)
+git clone https://github.com/RifqoSaputra/siakad-school.git
 cd siakad-school
 ```
 
-### 2. Instal Dependensi Composer
+2) Install dependencies PHP
 ```bash
 composer install
 ```
 
-### 3. Konfigurasi Environement (.env)
+3) Siapkan environment
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
-PENTING: Buka file .env dan pastikan konfigurasi database diatur dengan benar, terutama bagian:
-```bash
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=siakad_school
-DB_USERNAME=laravel
-DB_PASSWORD=laravel
-```
+Sesuaikan koneksi database di `.env`.
 
-### 4. Buat database di local anda dengan nama siakad_school
+4) Jalankan migrasi SIAKAD
 ```bash
-siakad_school
-```
-
-### 5. Jalankan Migrasi & Seeding "siakad_school"
-```bash
-# 2. Jalankan migrasi khusus SIAKAD/SCHOOL untuk membuat semua tabel
 php artisan migrate --path=database/migrations/SIAKAD/SCHOOL
-
-# 3. Jalankan seeder utama SIAKAD/SCHOOL untuk mengisi data awal
-php artisan db:seed --class=Database\\Seeders\\SIAKAD\\SCHOOL\\DatabaseSeeder
-
 ```
 
-### 6. Jalankan program 
+5) Jalankan seeder SIAKAD
+```bash
+php artisan db:seed --class=Database\\Seeders\\SIAKAD\\SCHOOL\\SiakadSeeder
+```
+
+6) Jalankan aplikasi
 ```bash
 php artisan serve
 ```
-Akses aplikasi di: http://localhost:8000
+Akses: http://localhost:8000
 
-### Detail Login Admin (Default)
-Gunakan kredensial berikut untuk login pertama kali:
-```bash
-Username: user1
+## Login (Default)
+Password default semua akun: `password`
 
-Password: password
-```
+Akun Email (Dummy):
+- Admin: `rizky.alamsyah@admin.mutiarabangsa.ac.id`
+- Guru: `rina.ps@mutiarabangsa.ac.id`
+- Ortu: `bambang.sugeng@gmail.com`
+
+## Catatan Lupa Kata Sandi
+- Flow reset password menggunakan tabel `password_reset_tokens`.
+- Link reset ditampilkan sebagai tombol dummy (tanpa pengiriman email sungguhan).
+
+## Tips
+- Jika melakukan perubahan data email/akun, jalankan ulang seeder terkait:
+  - `Database\\Seeders\\SIAKAD\\SCHOOL\\AdminSeeder`
+  - `Database\\Seeders\\SIAKAD\\SCHOOL\\GuruSeeder`
+  - `Database\\Seeders\\SIAKAD\\SCHOOL\\OrtuSeeder`
+  - `Database\\Seeders\\SIAKAD\\SCHOOL\\UserSeeder`
