@@ -50,13 +50,5 @@ Akun Email (Dummy):
 - Guru: `rina.ps@mutiarabangsa.ac.id`
 - Ortu: `bambang.sugeng@gmail.com`
 
-## Catatan Lupa Kata Sandi
-- Flow reset password menggunakan tabel `password_reset_tokens`.
-- Link reset ditampilkan sebagai tombol dummy (tanpa pengiriman email sungguhan).
-
-## Tips
-- Jika melakukan perubahan data email/akun, jalankan ulang seeder terkait:
-  - `Database\\Seeders\\SIAKAD\\SCHOOL\\AdminSeeder`
-  - `Database\\Seeders\\SIAKAD\\SCHOOL\\GuruSeeder`
-  - `Database\\Seeders\\SIAKAD\\SCHOOL\\OrtuSeeder`
-  - `Database\\Seeders\\SIAKAD\\SCHOOL\\UserSeeder`
+## Catatan Flow "Lupa Kata Sandi"
+- Link reset ditampilkan sebagai button dummy (tanpa pengiriman email sungguhan).
