@@ -8,42 +8,42 @@ use Carbon\Carbon;
 
 class SiswaKelasSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $now = Carbon::now();
-        $userEntry = 1; // Superadmin
-        $siswa_kelas = [];
-        $id_counter = 1;
-        $siswa_per_kelas = 10;
-        $total_siswa = 60;
-        
-        // --- KOREKSI: Tambahkan definisi Tahun Ajaran ---
+        $userEntry = 1;
         $tahunAjaran = '2024/2025';
-        // ----------------------------------------------------
 
-        for ($siswa_id = 1; $siswa_id <= $total_siswa; $siswa_id++) {
-            // Menentukan Kelas ID berdasarkan urutan siswa
-            // 1-10 -> Kelas 1, 11-20 -> Kelas 2, dst.
-            $kelas_id = ceil($siswa_id / $siswa_per_kelas);
+        // 🔥 AMBIL ID SISWA ASLI DARI DATABASE
+        $siswaIds = DB::table('siswa')
+            ->orderBy('id_siswa')
+            ->pluck('id_siswa');
 
-            $siswa_kelas[] = [
-                'siswa_kelas_id' => $id_counter++,
-                'id_siswa' => $siswa_id,
-                'kelas_id' => $kelas_id,
-                
-                // --- KOREKSI: Tambahkan kolom tahun_ajaran ---
-                'tahun_ajaran' => $tahunAjaran, 
-                // ----------------------------------------------
-                
-                'status' => 1,
-                'user_entry' => $userEntry,
-                'tgl_entry' => $now
+        $siswa_per_kelas = 10;
+        $kelas_id = 1;
+        $counter = 0;
+
+        $data = [];
+
+        foreach ($siswaIds as $id_siswa) {
+
+            if ($counter > 0 && $counter % $siswa_per_kelas === 0) {
+                $kelas_id++;
+            }
+
+            $data[] = [
+                'id_siswa'     => $id_siswa,
+                'kelas_id'     => $kelas_id,
+                'tahun_ajaran' => $tahunAjaran,
+                'status'       => 1,
+                'user_entry'   => $userEntry,
+                'tgl_entry'    => $now,
             ];
+
+            $counter++;
         }
 
-        DB::table('siswa_kelas')->insert($siswa_kelas);
+        DB::table('siswa_kelas')->truncate();
+        DB::table('siswa_kelas')->insert($data);
     }
 }

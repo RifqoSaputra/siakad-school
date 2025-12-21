@@ -24,7 +24,7 @@ class AdminSeeder extends Seeder
                 'alamat_rmh' => 'Jl. Gatot Subroto No. 5',
                 'kota_rmh' => 'Jakarta',
                 'no_hp' => '081210001001',
-                'email' => 'rizky.admin@sekolah.ac.id',
+                'email' => 'rizky.alamsyah@admin.mutiarabangsa.ac.id',
             ],
             [
                 'id_admin' => 2,
@@ -33,7 +33,7 @@ class AdminSeeder extends Seeder
                 'alamat_rmh' => 'Perumahan Indah Blok C1',
                 'kota_rmh' => 'Bekasi',
                 'no_hp' => '085720002002',
-                'email' => 'siti.admin@sekolah.ac.id',
+                'email' => 'siti.admin@mutiarabangsa.ac.id',
             ],
         ];
 
@@ -44,6 +44,10 @@ class AdminSeeder extends Seeder
             return $data;
         }, $admin);
 
-        DB::table('admin')->insert($admin);
+        DB::table('admin')->upsert(
+            $admin,
+            ['id_admin'],
+            ['users_id', 'nama_admin', 'alamat_rmh', 'kota_rmh', 'no_hp', 'email', 'user_entry', 'tgl_entry']
+        );
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders\SIAKAD\SCHOOL;
+namespace Database\Seeders\SIAKAD\SCHOOL\Nilai;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

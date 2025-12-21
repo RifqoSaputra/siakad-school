@@ -53,11 +53,12 @@
                     Sistem Akademik SMK Mutiara Bangsa 1
                 </p>
 
-                {{-- GLOBAL ERROR --}}
-                @if ($errors->has('username'))
-                    <p class="field-error-text" style="margin-bottom: 16px;">
-                        {{ $errors->first('username') }}
-                    </p>
+                @if (session('password_reset_success'))
+                    <div class="toast toast-success" id="resetToast">
+                        <span class="material-symbols-rounded">check_circle</span>
+                        <div class="toast-text">{{ session('password_reset_success') }}</div>
+                        <button type="button" class="toast-close" aria-label="Tutup notifikasi">&times;</button>
+                    </div>
                 @endif
 
                 <form method="POST" action="{{ route('login.process') }}" class="login-form" id="loginForm">
@@ -65,23 +66,23 @@
 
                     {{-- USERNAME FIELD --}}
                     <div class="field-group">
-                        <label for="username" class="field-label">Masukan Username Anda</label>
+                        <label for="email" class="field-label">Email</label>
 
                         <div class="field-input-wrapper">
-                            <input id="username" type="text" name="username" value="{{ old('username') }}"
-                                placeholder="Username..."
-                                class="field-input @error('username') field-input-error @enderror"
-                                autocomplete="username" autofocus>
+                            <input id="email" type="email" name="email"
+                                value="{{ session('login_email', old('email')) }}" placeholder="Email..."
+                                class="field-input @error('email') field-input-error @enderror" autocomplete="email"
+                                autofocus>
                         </div>
 
-                        @error('username')
+                        @error('email')
                             <p class="field-error-text">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- PASSWORD FIELD (no label sesuai permintaan) --}}
+                    {{-- PASSWORD FIELD --}}
                     <div class="field-group password-group">
-                        <label for="username" class="field-label">Masukan Kata Sandi Anda</label>
+                        <label for="password" class="field-label">Kata Sandi</label>
 
                         <div class="field-input-wrapper field-input-password">
                             <input id="password" type="password" name="password" value="{{ old('password') }}"
@@ -99,6 +100,10 @@
                         @enderror
                     </div>
 
+                    <div class="helper-row helper-row-compact">
+                        <a class="text-link" href="{{ route('password.request') }}">Lupa kata sandi?</a>
+                    </div>
+
                     {{-- LOGIN BUTTON --}}
                     <button type="submit" class="login-button login-button-disabled" id="loginButton" disabled>
                         Masuk
@@ -112,15 +117,17 @@
 
     <script>
         (function() {
-            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
             const loginButton = document.getElementById('loginButton');
             const toggleButton = document.querySelector('.password-toggle');
             const toggleIcon = toggleButton?.querySelector('.material-symbols-rounded');
+            const toast = document.getElementById('resetToast');
+            const toastClose = toast?.querySelector('.toast-close');
 
             function updateButtonState() {
                 const canSubmit =
-                    usernameInput.value.trim() !== '' &&
+                    emailInput.value.trim() !== '' &&
                     passwordInput.value.trim() !== '';
 
                 if (canSubmit) {
@@ -134,7 +141,7 @@
                 }
             }
 
-            usernameInput.addEventListener("input", updateButtonState);
+            emailInput.addEventListener("input", updateButtonState);
             passwordInput.addEventListener("input", updateButtonState);
 
             updateButtonState();
@@ -145,6 +152,12 @@
                     passwordInput.type = showing ? 'password' : 'text';
                     toggleIcon.textContent = showing ? 'visibility_off' : 'visibility';
                 });
+            }
+
+            if (toast) {
+                const hideToast = () => toast.remove();
+
+                toastClose?.addEventListener('click', hideToast);
             }
         })();
     </script>

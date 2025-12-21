@@ -16,12 +16,13 @@ return new class extends Migration
             $table->unsignedInteger('users_id'); // Foreign Key
             $table->string('nip', 25)->nullable()->unique(); // Unique (Otomatis Index)
             $table->string('nama_guru', 150);
+            $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
             $table->string('alamat_rmh')->nullable();
             $table->string('kota_rmh', 100)->nullable();
             $table->string('no_hp', 13)->nullable();
             $table->string('email', 100)->nullable();
-            $table->boolean('status_aktif')->default(1);
-
+            $table->enum('status_guru', ['Aktif', 'Cuti', 'Nonaktif'])->default('Aktif');
+            
             // Kolom Audit
             $table->unsignedInteger('user_entry')->nullable();
             $table->dateTime('tgl_entry')->nullable();
@@ -35,6 +36,7 @@ return new class extends Migration
             $table->index('users_id'); // Sangat penting, ini FK
             $table->index('nama_guru'); // Untuk pencarian guru
             $table->index('no_hp');
+            $table->index('status_guru');
         });
     }
 

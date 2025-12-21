@@ -16,7 +16,6 @@ class Siswa extends Model
     public $timestamps = false; 
 
     protected $fillable = [
-        'users_id', // Tambahan FK ke User
         'id_ortu',
         'nis',
         'nama',
@@ -25,6 +24,7 @@ class Siswa extends Model
         'agama', 
         'alamat_rmh',
         'kota_rmh',
+        'status_siswa',
         'user_entry',
         'tgl_entry',
         'user_update',
@@ -34,12 +34,6 @@ class Siswa extends Model
     public function ortu()
     {
         return $this->belongsTo(Ortu::class, 'id_ortu', 'id_ortu');
-    }
-
-    // Relasi baru ke User
-    public function user() 
-    {
-        return $this->belongsTo(User::class, 'users_id', 'users_id');
     }
 
     // Relasi ke enrollment kelas (SiswaKelas)

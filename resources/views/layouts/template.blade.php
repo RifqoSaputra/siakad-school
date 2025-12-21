@@ -508,8 +508,9 @@
                             <span class="avatar">{{ substr($selectedSiswa->nama, 0, 1) }}</span>
                             <span class="nama-anak">{{ $selectedSiswa->nama }}</span>
                             {{-- PERBAIKAN: Mengambil kelas dari relasi enrollment --}}
-                            <span
-                                class="kelas-anak">{{ $selectedSiswa->enrollment->first()->kelas->nama_kelas ?? 'Belum ada kelas' }}</span>
+                            <span class="kelas-anak">
+                                {{ $selectedSiswa->enrollment->first()->kelas->nama_kelas_lengkap ?? 'Belum ada kelas' }}
+                            </span>
                             <i class="bi bi-caret-down-fill" style="font-size: 0.7rem; margin-left: 5px;"></i>
                         </div>
 
@@ -524,7 +525,7 @@
                                         <div style="font-weight: 500;">{{ $siswa->nama }}</div>
                                         <div style="font-size: 0.75rem; color: #6c757d;">
                                             {{-- PERBAIKAN: Mengambil kelas dari relasi enrollment --}}
-                                            {{ $siswa->enrollment->first()->kelas->nama_kelas ?? 'N/A' }}</div>
+                                            {{ $siswa->enrollment->first()->kelas->nama_kelas_lengkap ?? 'N/A' }}</div>
                                     </div>
                                 </a>
                             @endforeach

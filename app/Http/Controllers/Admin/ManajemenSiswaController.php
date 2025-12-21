@@ -5,42 +5,29 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ManajemenSiswaController extends Controller
 {
     public function index(Request $request)
     {
-        /* =====================================================
-         * 1. TAHUN AJARAN
-         * ===================================================== */
         $allTahunAjaran = DB::table('kelas')
             ->select('tahun_ajaran')
             ->distinct()
-            ->orderBy('tahun_ajaran', 'desc')
-            ->pluck('tahun_ajaran')
-            ->toArray();
+            ->orderByDesc('tahun_ajaran')
+            ->pluck('tahun_ajaran');
 
-        $tahunAjaranAktif = $request->get(
-            'tahun_ajaran',
-            $allTahunAjaran[0] ?? null
-        );
+        $tahunAjaranAktif = $request->tahun_ajaran ?? $allTahunAjaran->first();
 
-        /* =====================================================
-         * 2. DROPDOWN KELAS
-         * ===================================================== */
         $allKelas = DB::table('kelas')
             ->where('tahun_ajaran', $tahunAjaranAktif)
             ->select(
                 'kelas_id',
-                DB::raw("CONCAT(tingkat_kelas, ' ', nama_kelas) AS nama_kelas_lengkap")
+                DB::raw("CONCAT(tingkat_kelas,' ',nama_kelas) AS nama_kelas_lengkap")
             )
             ->orderBy('tingkat_kelas')
-            ->orderBy('nama_kelas')
             ->get();
 
-        /* =====================================================
-         * 3. QUERY UTAMA SISWA
-         * ===================================================== */
         $query = DB::table('siswa')
             ->leftJoin('siswa_kelas', function ($join) use ($tahunAjaranAktif) {
                 $join->on('siswa.id_siswa', '=', 'siswa_kelas.id_siswa')
@@ -49,63 +36,73 @@ class ManajemenSiswaController extends Controller
             })
             ->leftJoin('kelas', 'kelas.kelas_id', '=', 'siswa_kelas.kelas_id')
             ->select(
-                'siswa.id_siswa',
-                'siswa.nis',
-                'siswa.nama',
-                'siswa.tgl_lahir',
-                DB::raw("CONCAT(kelas.tingkat_kelas, ' ', kelas.nama_kelas) AS kelas_sekarang"),
-                DB::raw("IF(siswa_kelas.status = 1, 'Aktif', 'Non Aktif') AS status_akademik")
+                'siswa.*',
+                DB::raw("CONCAT(kelas.tingkat_kelas,' ',kelas.nama_kelas) AS kelas_sekarang")
             );
 
-        /* =====================================================
-         * 4. FILTER
-         * ===================================================== */
-        // Search
-        if ($search = $request->get('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('siswa.nama', 'like', "%{$search}%")
-                    ->orWhere('siswa.nis', 'like', "%{$search}%");
-            });
+        if ($request->search) {
+            $query->where('siswa.nama', 'like', "%{$request->search}%")
+                  ->orWhere('siswa.nis', 'like', "%{$request->search}%");
         }
 
-        // Filter Kelas
-        if ($kelasId = $request->get('kelas')) {
-            $query->where('kelas.kelas_id', $kelasId);
+        if ($request->kelas) {
+            $query->where('kelas.kelas_id', $request->kelas);
         }
 
-        /* =====================================================
-         * 5. RINGKASAN
-         * ===================================================== */
-        $totalSiswaAktif = DB::table('siswa_kelas')
-            ->where('tahun_ajaran', $tahunAjaranAktif)
-            ->where('status', 1)
-            ->count();
+        return view('dashboard.admin.manajemen-siswa', [
+            'siswaData' => $query->orderBy('siswa.nama')->paginate(10)->withQueryString(),
+            'allTahunAjaran' => $allTahunAjaran,
+            'tahunAjaranAktif' => $tahunAjaranAktif,
+            'allKelas' => $allKelas,
+            'totalSiswaAktif' => DB::table('siswa')->where('status_siswa', 'Aktif')->count(),
+            'totalSiswaNonAktif' => DB::table('siswa')->where('status_siswa', '!=', 'Aktif')->count(),
+            'request' => $request
+        ]);
+    }
 
-        $totalSiswaNonAktif = DB::table('siswa')
-            ->whereNotIn('id_siswa', function ($q) use ($tahunAjaranAktif) {
-                $q->select('id_siswa')
-                    ->from('siswa_kelas')
-                    ->where('tahun_ajaran', $tahunAjaranAktif)
-                    ->where('status', 1);
-            })
-            ->count();
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nis' => 'required|unique:siswa,nis',
+            'nama' => 'required',
+            'jenis_kelamin' => 'required',
+            'tgl_lahir' => 'required',
+            'agama' => 'required',
+        ]);
 
-        /* =====================================================
-         * 6. PAGINATION
-         * ===================================================== */
-        $siswaData = $query
-            ->orderBy('siswa.nama')
-            ->paginate(15)
-            ->withQueryString();
+        DB::table('siswa')->insert([
+            'nis' => $request->nis,
+            'nama' => $request->nama,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'tgl_lahir' => $request->tgl_lahir,
+            'agama' => $request->agama,
+            'alamat_rmh' => $request->alamat_rmh,
+            'kota_rmh' => $request->kota_rmh,
+            'status_siswa' => 'Aktif',
+            'user_entry' => 1,
+            'tgl_entry' => Carbon::now(),
+        ]);
 
-        return view('dashboard.admin.manajemen-siswa', compact(
-            'siswaData',
-            'tahunAjaranAktif',
-            'allTahunAjaran',
-            'allKelas',
-            'totalSiswaAktif',
-            'totalSiswaNonAktif',
-            'request'
-        ));
+        return back()->with('success', 'Siswa berhasil ditambahkan');
+    }
+
+    public function update(Request $request)
+    {
+        DB::table('siswa')
+            ->where('id_siswa', $request->id_siswa)
+            ->update([
+                'nis' => $request->nis,
+                'nama' => $request->nama,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'tgl_lahir' => $request->tgl_lahir,
+                'agama' => $request->agama,
+                'alamat_rmh' => $request->alamat_rmh,
+                'kota_rmh' => $request->kota_rmh,
+                'status_siswa' => $request->status_siswa,
+                'user_update' => 1,
+                'tgl_update' => Carbon::now(),
+            ]);
+
+        return back()->with('success', 'Data siswa berhasil diperbarui');
     }
 }

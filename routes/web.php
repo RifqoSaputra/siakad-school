@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengumumanNotificationController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 use App\Http\Controllers\Admin\ManajemenSiswaController;
 use App\Http\Controllers\Admin\ManajemenGuruController;
@@ -13,7 +14,6 @@ use App\Http\Controllers\Admin\NilaiHarianSiswaController;
 use App\Http\Controllers\Admin\NilaiUjianSiswaController;
 use App\Http\Controllers\Admin\LaporanRaporController;
 use App\Http\Controllers\Admin\AdminAnnouncementController;
-use App\Http\Controllers\Admin\PengumumanController;
 
 use App\Http\Controllers\Guru\AbsensiController;
 use App\Http\Controllers\Ortu\SiswaController;
@@ -36,6 +36,11 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login.pag
 // Proses login
 Route::post('/login', [LoginController::class, 'login'])->name('login.process');
 
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset.form');
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.reset');
+
 // Logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -57,7 +62,13 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->middleware('role:Admin')->group(function () {
         // Rute Manajemen Guru dan Siswa
         Route::get('/guru', [ManajemenGuruController::class, 'index'])->name('admin.guru');
+        Route::post('/guru/store', [ManajemenGuruController::class, 'store'])->name('admin.guru.store');
+        Route::post('/guru/update', [ManajemenGuruController::class, 'update'])->name('admin.guru.update');
+
         Route::get('/siswa', [ManajemenSiswaController::class, 'index'])->name('admin.siswa');
+        Route::post('/siswa', [ManajemenSiswaController::class, 'store'])->name('admin.siswa.store');
+        Route::post('/siswa/update', [ManajemenSiswaController::class, 'update'])->name('admin.siswa.update');
+
         Route::get('/mapel', [MapelController::class, 'index'])->name('admin.mapel');
         Route::get('/kelas', [KelasController::class, 'index'])->name('admin.kelas');
 

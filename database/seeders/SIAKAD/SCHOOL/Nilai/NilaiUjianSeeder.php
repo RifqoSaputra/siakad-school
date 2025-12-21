@@ -1,12 +1,12 @@
 <?php
 
-namespace Database\Seeders\SIAKAD\SCHOOL;
+namespace Database\Seeders\SIAKAD\SCHOOL\Nilai;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class NilaiTambahanSeeder extends Seeder
+class NilaiUjianSeeder extends Seeder
 {
     public function run(): void
     {
@@ -25,7 +25,9 @@ class NilaiTambahanSeeder extends Seeder
         // 2. Dapatkan SEMUA KELAS yang ada
         $kelas = DB::table('kelas')->pluck('kelas_id');
 
-        $nilai_tambahan = [];
+        $nilai_ujian = [];
+        // Jenis Ujian hanya 2: PTS dan PAS per semester
+        $jenis_ujian = ['PTS', 'PAS'];
 
         foreach ($unique_teachings as $teaching) {
             // Cari salah satu guru_mapel_id yang mengajar mapel/semester/tahun ini (cukup 1 ID untuk FK)
@@ -43,28 +45,33 @@ class NilaiTambahanSeeder extends Seeder
                 // PERBAIKAN LOGIKA: Tentukan status berdasarkan kelas_id
                 $status = ($k_id === $target_kelas_id) ? 'Submitted' : 'Draft';
 
-                // Sekarang, buat HANYA 5 Tugas untuk setiap kombinasi UNIK Mapel/Kelas/Semester/Tahun
-                for ($i = 1; $i <= 5; $i++) {
-                    $nilai_tambahan[] = [
+                // Sekarang, buat HANYA 1 PTS dan 1 PAS untuk setiap kombinasi UNIK Mapel/Kelas/Semester/Tahun
+                foreach ($jenis_ujian as $tipe) {
+
+                    // Set tanggal ujian (dummy)
+                    $tgl_ujian = ($tipe == 'PTS')
+                        ? Carbon::now()->addMonths(3)
+                        : Carbon::now()->addMonths(6);
+
+                    $nilai_ujian[] = [
                         'guru_mapel_id' => $gm_id,
                         'kelas_id'      => $k_id,
                         'mapel_id'      => $teaching->mapel_id,
+                        'tipe_ujian'    => $tipe,
+                        'deskripsi'     => 'Ujian ' . $tipe . ' Semester ' . $teaching->semester . ' untuk kelas ' . $k_id,
+                        'tanggal_ujian' => $tgl_ujian->format('Y-m-d'),
+                        'status'        => $status, // Gunakan status yang sudah ditentukan
                         'semester'      => $teaching->semester,
                         'tahun_ajaran'  => $teaching->tahun_ajaran,
-                        'status'        => $status, // Gunakan status yang sudah ditentukan
-                        'tipe_penunjang' => 'Tugas ' . $i,
-                        'deskripsi'     => 'Tugas Harian ke-' . $i . ' untuk Mapel ' . $teaching->mapel_id . ' di Kelas ' . $k_id,
                         'user_entry'    => $userEntry,
                         'tgl_entry'     => $now,
-                        'user_update'   => null,
-                        'tgl_update'    => null,
                     ];
                 }
             }
         }
 
-        foreach (array_chunk($nilai_tambahan, 100) as $chunk) {
-            DB::table('nilai_tambahan')->insert($chunk);
+        foreach (array_chunk($nilai_ujian, 100) as $chunk) {
+            DB::table('nilai_ujian')->insert($chunk);
         }
     }
 }

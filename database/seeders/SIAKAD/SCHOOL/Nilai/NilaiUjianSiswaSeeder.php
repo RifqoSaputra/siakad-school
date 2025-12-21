@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders\SIAKAD\SCHOOL;
+namespace Database\Seeders\SIAKAD\SCHOOL\Nilai;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -24,8 +24,7 @@ class NilaiUjianSiswaSeeder extends Seeder
                 ->pluck('id_siswa');
 
             foreach ($siswa_di_kelas as $id_siswa) {
-                // Generate Nilai Ujian (50.0 - 100.0)
-                $nilai_acak = rand(500, 1000) / 10;
+                $nilai_acak = rand(70, 98);
 
                 $nilai_siswa[] = [
                     'nilai_ujian_id' => $header->id,

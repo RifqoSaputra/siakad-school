@@ -4,48 +4,111 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
 use App\Models\SIAKAD\SCHOOL\Guru;
+use App\Models\SIAKAD\SCHOOL\User;
+use App\Models\SIAKAD\SCHOOL\UserRole;
+use App\Models\SIAKAD\SCHOOL\Role;
 
 class ManajemenGuruController extends Controller
 {
     public function index(Request $request)
     {
-        // =============================
-        // HANDLE UPDATE VIA MODAL
-        // =============================
-        if ($request->isMethod('post') && $request->filled('id_guru')) {
-            $guru = Guru::findOrFail($request->id_guru);
+        $query = Guru::query();
 
-            $guru->update([
-                'nip'        => $request->nip,
-                'nama_guru'  => $request->nama_guru,
-                'email'      => $request->email,
-                'no_hp'      => $request->no_hp,
-                'kota_rmh'   => $request->kota_rmh,
-                'alamat_rmh' => $request->alamat_rmh,
-            ]);
-
-            return redirect()->route('admin.guru')
-                ->with('success', 'Data guru berhasil diperbarui');
+        if ($request->search) {
+            $query->where('nama_guru', 'like', "%{$request->search}%")
+                ->orWhere('nip', 'like', "%{$request->search}%");
         }
 
-        // =============================
-        // DATA GURU
-        // =============================
-        $guruData = Guru::orderBy('nama_guru')->get();
+        if ($request->status) {
+            $query->where('status_guru', $request->status);
+        }
 
-        // =============================
-        // RINGKASAN
-        // =============================
-        $totalGuru = $guruData->count();
-        $totalGuruAktif = $totalGuru;
-        $totalGuruPNS = 0; // belum ada field
+        return view('dashboard.admin.manajemen-guru', [
+            'guruData' => $query->orderBy('nama_guru')->get(),
+            'totalGuru' => Guru::count(),
+            'totalGuruAktif' => Guru::where('status_guru', 'Aktif')->count(),
+            'totalGuruNonAktif' => Guru::where('status_guru', 'Nonaktif')->count(),
+            'request' => $request
+        ]);
+    }
 
-        return view('dashboard.admin.manajemen-guru', compact(
-            'guruData',
-            'totalGuru',
-            'totalGuruAktif',
-            'totalGuruPNS'
-        ));
+    public function store(Request $r)
+    {
+        DB::transaction(function () use ($r) {
+
+            $userLogin = Auth::user();
+
+            $email = $r->email_prefix . '@mutiarabangsa.ac.id';
+
+            $user = User::create([
+                'username'   => $email,
+                'password'   => Hash::make('password'),
+                'status'     => $r->status_guru === 'Aktif' ? 1 : 0,
+                'user_entry' => $userLogin->users_id,
+                'tgl_entry'  => now()
+            ]);
+
+            $role = Role::where('nama_role', 'guru')->firstOrFail();
+
+            UserRole::create([
+                'users_id'   => $user->users_id,
+                'role_id'    => $role->role_id,
+                'user_entry' => $userLogin->users_id,
+                'tgl_entry'  => now()
+            ]);
+
+            Guru::create([
+                'users_id'      => $user->users_id,
+                'nip'           => $r->nip,
+                'nama_guru'     => $r->nama_guru,
+                'jenis_kelamin' => $r->jenis_kelamin,
+                'email'         => $email,
+                'no_hp'         => $r->no_hp,
+                'alamat_rmh'    => $r->alamat_rmh,
+                'kota_rmh'      => $r->kota_rmh,
+                'status_guru'   => $r->status_guru,
+                'user_entry'    => $userLogin->users_id,
+                'tgl_entry'     => now()
+            ]);
+        });
+
+        return back()->with('success', 'Guru berhasil ditambahkan');
+    }
+
+    public function update(Request $r)
+    {
+        DB::transaction(function () use ($r) {
+
+            $guru = Guru::findOrFail($r->id_guru);
+            $email = $r->email_prefix . '@mutiarabangsa.ac.id';
+
+            $guru->update([
+                'nip'           => $r->nip,
+                'nama_guru'     => $r->nama_guru,
+                'jenis_kelamin' => $r->jenis_kelamin,
+                'email'         => $email,
+                'no_hp'         => $r->no_hp,
+                'alamat_rmh'    => $r->alamat_rmh,
+                'kota_rmh'      => $r->kota_rmh,
+                'status_guru'   => $r->status_guru,
+                'user_update'   => Auth::user()->users_id,
+                'tgl_update'    => now()
+            ]);
+
+            // sync ke users
+            User::where('users_id', $guru->users_id)->update([
+                'username'    => $email,
+                'status'      => $r->status_guru === 'Aktif' ? 1 : 0,
+                'user_update' => Auth::user()->users_id,
+                'tgl_update'  => now()
+            ]);
+        });
+
+        return back()->with('success', 'Data guru berhasil diperbarui');
     }
 }

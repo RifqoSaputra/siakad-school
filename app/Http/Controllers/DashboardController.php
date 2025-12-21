@@ -29,11 +29,11 @@ class DashboardController extends Controller
         /** @var \App\Models\SIAKAD\SCHOOL\User $user */
         $user = Auth::user();
 
-        if ($user->hasRole('admin')) {
+        if ($user->hasRole('Admin')) {
             return $this->adminIndex();
         }
 
-        if ($user->hasRole('guru')) {
+        if ($user->hasRole('Guru')) {
             return $this->guruIndex();
         }
 

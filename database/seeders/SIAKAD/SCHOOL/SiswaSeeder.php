@@ -8,18 +8,47 @@ use Carbon\Carbon;
 
 class SiswaSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $now = Carbon::now();
-        $userEntry = 1; // Superadmin
-        $siswa = [];
-        $nis_start = 20240001; // NIS awal
-        $ortu_id_counter = 1; // Mulai dari Ortu ID 1
+        $userEntry = 1;
 
-        // Daftar Nama Siswa Unik (campuran)
+        $detectGender = function (string $name): string {
+            $femaleKeywords = [
+                'putri',
+                'ayu',
+                'sari',
+                'indah',
+                'mila',
+                'elisa',
+                'hana',
+                'jessica',
+                'maya',
+                'nova',
+                'sarah',
+                'vira',
+                'wulan',
+                'bella',
+                'diana',
+                'fani',
+                'gita',
+                'intan',
+                'olivia',
+                'risa',
+                'zaskia'
+            ];
+
+            $nameLower = strtolower($name);
+
+            foreach ($femaleKeywords as $keyword) {
+                if (str_contains($nameLower, $keyword)) {
+                    return 'P';
+                }
+            }
+
+            return 'L';
+        };
+
         $nama_siswa = [
             'Aura Kasih',
             'Bima Sakti',
@@ -79,43 +108,39 @@ class SiswaSeeder extends Seeder
             'Hari Santoso',
             'Intan Nuraini',
             'Jonas Rivano',
-            'Krisdayanti',
-            'Liliyana Natsir',
-            'Marsha Timothy',
-            'Nico Saputra',
-            'Olivia Jensen',
-            'Pasha Ungu',
-            'Risa Saraswati',
-            'Slamet Riyadi'
+            'Krisdayanti'
         ];
 
-        // Looping 60 siswa
-        for ($i = 0; $i < 60; $i++) {
-            // Setelah 6 siswa, ganti ke Ortu berikutnya
-            if ($i > 0 && $i % 6 == 0) {
+        $siswa = [];
+        $nis_start = 20240001;
+        $ortu_id_counter = 1;
+
+        foreach ($nama_siswa as $i => $nama) {
+
+            if ($i > 0 && $i % 6 === 0) {
                 $ortu_id_counter++;
             }
 
-            // Atur Tanggal Lahir (17-19 tahun untuk SMA/SMK)
-            $birthYear = rand(2006, 2008);
-            $birthMonth = rand(1, 12);
-            $birthDay = rand(1, 28);
-            $tgl_lahir = Carbon::create($birthYear, $birthMonth, $birthDay)->toDateString();
-
             $siswa[] = [
-                'id_siswa' => $i + 1,
-                'id_ortu' => $ortu_id_counter, // FK ke Ortu
-                'nis' => (string)($nis_start + $i),
-                'nama' => $nama_siswa[$i],
-                'tgl_lahir' => $tgl_lahir,
-                'agama' => rand(0, 1) ? 'Islam' : 'Kristen',
-                'alamat_rmh' => 'Jl. Siswa No. ' . ($i + 1),
-                'kota_rmh' => rand(0, 1) ? 'Bandung' : 'Cimahi',
-                'user_entry' => $userEntry,
-                'tgl_entry' => $now,
+                'id_ortu'        => $ortu_id_counter,
+                'nis'            => (string)($nis_start + $i),
+                'nama'           => $nama,
+                'jenis_kelamin'  => $detectGender($nama),
+                'tgl_lahir'      => Carbon::create(
+                    rand(2006, 2008),
+                    rand(1, 12),
+                    rand(1, 28)
+                )->toDateString(),
+                'agama'          => rand(0, 1) ? 'Islam' : 'Kristen',
+                'alamat_rmh'     => 'Jl. Siswa No. ' . ($i + 1),
+                'kota_rmh'       => rand(0, 1) ? 'Bandung' : 'Cimahi',
+                'status_siswa'   => 'Aktif',
+                'user_entry'     => $userEntry,
+                'tgl_entry'      => $now,
             ];
         }
 
+        DB::table('siswa')->truncate(); // penting biar clean
         DB::table('siswa')->insert($siswa);
     }
 }

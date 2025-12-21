@@ -16,10 +16,17 @@ return new class extends Migration
             $table->unsignedInteger('id_ortu')->nullable(); // Foreign Key (wali/ortu)
             $table->string('nis', 20)->unique(); // Unique (Otomatis Index)
             $table->string('nama', 150);
+            $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
             $table->date('tgl_lahir')->nullable();
             $table->char('agama', 30)->nullable();
             $table->string('alamat_rmh')->nullable();
             $table->string('kota_rmh', 100)->nullable();
+            $table->enum('status_siswa', [
+                'Aktif',
+                'Lulus',
+                'Tidak Lulus',
+                'Nonaktif'
+            ])->default('Aktif');
 
             // Kolom Audit
             $table->unsignedInteger('user_entry')->nullable();
@@ -31,8 +38,10 @@ return new class extends Migration
             $table->foreign('id_ortu')->references('id_ortu')->on('ortu')->onDelete('set null');
 
             // --- PENAMBAHAN INDEX EFEKTIVITAS ---
-            $table->index('id_ortu'); // Sangat penting untuk filter/join oleh ortu
-            $table->index('nama'); // Untuk pencarian/sorting siswa
+            $table->index('id_ortu'); 
+            $table->index('nama'); 
+            $table->index('status_siswa');
+            $table->index('jenis_kelamin');
         });
     }
 
