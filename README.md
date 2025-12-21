@@ -3,8 +3,11 @@
 Sistem akademik SMK Mutiara Bangsa 1 berbasis Laravel.
 
 ## Tech Stack
+- Composer
+- Node.js
 - Laravel 12
 - PHP 8.3+
+- Laragon, XAMP, Docker
 - MySQL/MariaDB
 
 ## Instalasi
