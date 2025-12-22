@@ -54,9 +54,15 @@ php artisan db:seed --class=Database\\Seeders\\SIAKAD\\SCHOOL\\SiakadSeeder
 php artisan db:seed --class=Database\\Seeders\\SIAKAD\\SCHOOL\\Nilai\\NilaiSeeder
 ```
 
-5) Jalankan aplikasi
+5) Nyalakan server MySQL & Apache pada local (XAMPP, Laragon, Docker)
+
+6) Jalankan aplikasi & Vite CSS
 ```bash
+# Untuk menjalankan server
 php artisan serve
+
+# Untuk menjalankan Vite
+npm run dev
 ```
 Akses: http://localhost:8000
 

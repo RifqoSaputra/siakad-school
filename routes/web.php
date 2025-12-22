@@ -70,7 +70,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/siswa/update', [ManajemenSiswaController::class, 'update'])->name('admin.siswa.update');
 
         Route::get('/mapel', [MapelController::class, 'index'])->name('admin.mapel');
+        Route::post('/mapel/store', [MapelController::class, 'store'])->name('admin.mapel.store');
+        Route::post('/mapel/update', [MapelController::class, 'update'])->name('admin.mapel.update');
+
         Route::get('/kelas', [KelasController::class, 'index'])->name('admin.kelas');
+        Route::post('/kelas/store', [KelasController::class, 'store'])->name('admin.kelas.store');
+        Route::post('/kelas/update', [KelasController::class, 'update'])->name('admin.kelas.update');
+        Route::get('/kelas/search-siswa', [KelasController::class, 'searchSiswa']);
+        Route::get('/kelas/{id}/siswa', [KelasController::class, 'siswaKelas']);
 
         // Rute untuk Nilai Harian dan Ujian (TETAP DI SINI)
         Route::group(['prefix' => 'nilai', 'as' => 'admin.nilai.'], function () {
