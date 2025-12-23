@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 
 use App\Http\Controllers\Admin\ManajemenSiswaController;
 use App\Http\Controllers\Admin\ManajemenGuruController;
+use App\Http\Controllers\Admin\ManajemenJadwalController;
 use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\NilaiHarianSiswaController;
@@ -78,6 +79,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/kelas/update', [KelasController::class, 'update'])->name('admin.kelas.update');
         Route::get('/kelas/search-siswa', [KelasController::class, 'searchSiswa']);
         Route::get('/kelas/{id}/siswa', [KelasController::class, 'siswaKelas']);
+
+        Route::get('/jadwal-pelajaran', [ManajemenJadwalController::class, 'index'])->name('admin.jadwal');
+        Route::post('/jadwal-pelajaran/store', [ManajemenJadwalController::class, 'store'])->name('admin.jadwal.store');
+        Route::post('/jadwal-pelajaran/update', [ManajemenJadwalController::class, 'update'])->name('admin.jadwal.update');
 
         // Rute untuk Nilai Harian dan Ujian (TETAP DI SINI)
         Route::group(['prefix' => 'nilai', 'as' => 'admin.nilai.'], function () {

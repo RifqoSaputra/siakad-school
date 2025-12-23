@@ -45,7 +45,7 @@ class KelasController extends Controller
         $kelasNonaktif = Kelas::where('status', 0)->count();
 
         // DATA MASTER
-        $guru = Guru::where('status_guru', 'Aktif')->orderBy('nama_guru')->get();
+        $guru = Guru::where('status_guru', '1')->orderBy('nama_guru')->get();
 
         // SISWA YANG BELUM MASUK KELAS
         $siswaBelumKelas = Siswa::whereNotIn('id_siswa', function ($q) {
@@ -84,7 +84,7 @@ class KelasController extends Controller
                         'kelas_id' => $kelas->kelas_id,
                         'id_siswa' => $idSiswa,
                         'tahun_ajaran' => $r->tahun_ajaran,
-                        'status' => 'Aktif',
+                        'status' => '1',
                         'user_entry' => Auth::user()->users_id,
                         'tgl_entry' => now()
                     ]);
@@ -121,7 +121,7 @@ class KelasController extends Controller
                         'kelas_id' => $kelas->kelas_id,
                         'id_siswa' => $idSiswa,
                         'tahun_ajaran' => $r->tahun_ajaran,
-                        'status' => 'Aktif',
+                        'status' => '1',
                         'user_entry' => Auth::user()->users_id,
                         'tgl_entry' => now()
                     ]);
@@ -153,8 +153,6 @@ class KelasController extends Controller
 
         $query = Siswa::query();
 
-        // EXCLUDE siswa yang sudah aktif di kelas MANAPUN
-        // KECUALI kelas yang sedang diedit
         $query->whereNotIn('id_siswa', function ($sub) use ($kelasId) {
             $sub->select('id_siswa')
                 ->from('siswa_kelas')

@@ -33,20 +33,19 @@ class RolePrivilegeSeeder extends Seeder
             'tgl_entry' => $now
         ];
 
-        // Daftar Menu ID yang diizinkan untuk Admin (Full Access CRUD)
-        // DIHAPUS: 4,12,13,5,14,23 sesuai permintaan (manajemen user, laporan parent & child 14, info keuangan)
         $admin_menu_ids = [
-            1, // Dashboard
-            2, // Data Master (Parent)
+            1, 
+            2, 
             6,
             7,
             8,
-            9, // Data Master Children
-            28, // Nilai Siswa (Parent)
+            9,
+            10, 
+            28, 
             29,
-            30, // Nilai Siswa Children
-            31, // Laporan Rapor (sekarang top-level)
-            24, // Pengumuman
+            30, 
+            31, 
+            24, 
         ];
 
         // ----------------------------------------------------

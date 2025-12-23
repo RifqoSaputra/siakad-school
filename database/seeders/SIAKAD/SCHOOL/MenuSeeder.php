@@ -56,6 +56,19 @@ class MenuSeeder extends Seeder
         $menus[] = ['menu_id' => 7, 'parent_id' => 2, 'nama_menu' => 'Data Siswa', 'url' => '/admin/siswa', 'icon' => 'user-graduate', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 2, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now];
         $menus[] = ['menu_id' => 8, 'parent_id' => 2, 'nama_menu' => 'Mata Pelajaran', 'url' => '/admin/mapel', 'icon' => 'book-open', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 3, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now];
         $menus[] = ['menu_id' => 9, 'parent_id' => 2, 'nama_menu' => 'Data Kelas', 'url' => '/admin/kelas', 'icon' => 'door-closed', 'menu_level' => 2, 'have_child' => 0, 'menu_order' => 4, 'status' => 1, 'user_entry' => $userEntry, 'tgl_entry' => $now];
+        $menus[] = [
+            'menu_id' => 10, // pastikan ID belum dipakai
+            'parent_id' => 2, // Data Master
+            'nama_menu' => 'Jadwal Pelajaran',
+            'url' => '/admin/jadwal-pelajaran',
+            'icon' => 'calendar-alt',
+            'menu_level' => 2,
+            'have_child' => 0,
+            'menu_order' => 5, // setelah Data Kelas
+            'status' => 1,
+            'user_entry' => $userEntry,
+            'tgl_entry' => $now,
+        ];
 
         // 3. Nilai Siswa (Admin parent)
         $menus[] = [

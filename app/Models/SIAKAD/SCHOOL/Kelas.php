@@ -21,7 +21,6 @@ class Kelas extends Model
         'tingkat_kelas',
         'nama_kelas',
         'tahun_ajaran',
-        'semester',
         'status',
         'user_entry',
         'tgl_entry',

@@ -17,7 +17,6 @@ return new class extends Migration
             $table->char('tingkat_kelas', 2);
             $table->string('nama_kelas', 50);
             $table->string('tahun_ajaran', 10);
-            $table->enum('semester', ['Ganjil', 'Genap']);
             $table->boolean('status')->default(1);
 
             // Kolom Audit
@@ -30,12 +29,12 @@ return new class extends Migration
             $table->foreign('walikelas')->references('id_guru')->on('guru')->onDelete('set null');
 
             // Tambahkan Unique Constraint pada kombinasi Kelas dan Tahun Ajaran/Semester
-            $table->unique(['tingkat_kelas', 'nama_kelas', 'tahun_ajaran', 'semester'], 'kelas_unique_key');
+            $table->unique(['tingkat_kelas', 'nama_kelas', 'tahun_ajaran'], 'kelas_unique_key');
             
             // --- PENAMBAHAN INDEX EFEKTIVITAS ---
             $table->index('walikelas'); // Sangat penting, ini FK
             $table->index('tingkat_kelas');
-            $table->index(['tahun_ajaran', 'semester']); 
+            $table->index(['tahun_ajaran']); 
         });
     }
 
