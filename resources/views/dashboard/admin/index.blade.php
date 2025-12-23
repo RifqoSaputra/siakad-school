@@ -100,63 +100,56 @@
                     </table>
                 </div>
 
-                {{-- PENGUMUMAN --}}
-                <div class="bg-white p-7 rounded-xl shadow-md">
-                    <div class="flex justify-between items-center mb-5">
+                {{-- PENGUMUMAN TERBARU (FIXED) --}}
+                <div class="bg-white p-7 rounded-xl shadow flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-bold flex items-center gap-2">
                             <i class="fas fa-bullhorn text-orange-500"></i>
                             Pengumuman Terbaru
                         </h2>
 
                         <a href="{{ route('admin.pengumuman.index') }}"
-                            class="text-base px-4 py-2 border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 transition">
+                            class="text-base px-4 py-2 border border-indigo-300 text-indigo-600 rounded-lg hover:bg-indigo-50 transition">
                             Lihat semua
                         </a>
                     </div>
 
-                    <table class="w-full text-base">
-                        <thead class="text-gray-500 border-b">
-                            <tr>
-                                <th class="pb-3 text-left">Judul</th>
-                                <th class="pb-3 text-left">Target</th>
-                                <th class="pb-3 text-left">Status</th>
-                                <th class="pb-3 text-left">Waktu</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($pengumuman as $p)
-                                <tr class="border-b last:border-0">
-                                    <td class="py-3 font-semibold">{{ $p->judul }}</td>
-                                    <td class="py-3">
-                                        <span class="px-3 py-1 text-sm rounded bg-gray-100 font-medium">
-                                            {{ strtoupper($p->target_role) }}
-                                        </span>
-                                    </td>
-                                    <td class="py-3">
-                                        @if ($p->status === 'published')
+                    <div class="space-y-4 max-h-[360px] overflow-y-auto pr-2">
+                        @forelse ($pengumuman as $p)
+                            <div class="border rounded-xl p-4 bg-white hover:bg-gray-50 transition">
+                                <div class="flex justify-between items-start gap-4">
+
+                                    <div class="space-y-1">
+                                        <p class="font-semibold text-gray-800">
+                                            {{ $p->judul }}
+                                        </p>
+
+                                        <div class="flex flex-wrap gap-2 text-xs">
+                                            {{-- TARGET --}}
+                                            <span class="px-2 py-1 rounded bg-indigo-50 text-indigo-700 font-medium">
+                                                {{ $p->targetLabel() }}
+                                            </span>
+
+                                            {{-- STATUS --}}
                                             <span
-                                                class="px-3 py-1 text-sm rounded bg-green-100 text-green-700 font-semibold">
-                                                Published
+                                                class="px-2 py-1 rounded font-semibold
+                            {{ in_array($p->status, ['published', 'sent']) ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600' }}">
+                                                {{ $p->statusLabel() }}
                                             </span>
-                                        @else
-                                            <span class="px-3 py-1 text-sm rounded bg-gray-200 text-gray-600 font-semibold">
-                                                Draft
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="py-3 text-gray-500">
-                                        {{ $p->created_at->diffForHumans() }}
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="py-5 text-center text-gray-500 italic">
-                                        Belum ada pengumuman
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                                        </div>
+                                    </div>
+
+                                    <span class="text-xs text-gray-500 whitespace-nowrap">
+                                        {{ $p->waktuSingkat() }}
+                                    </span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center text-gray-500 italic py-10">
+                                Belum ada pengumuman
+                            </div>
+                        @endforelse
+                    </div>
                 </div>
             </div>
 

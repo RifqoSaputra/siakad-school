@@ -311,7 +311,12 @@ class DashboardController extends Controller
         // =========================
         // PENGUMUMAN
         // =========================
-        $pengumuman = Pengumuman::latest()->limit(5)->get();
+        $pengumuman = Pengumuman::query()
+            ->whereIn('status', ['published', 'sent']) // 🔑 hanya yang tayang
+            ->orderByDesc('sent_at')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
 
         return view('dashboard.admin.index', compact(
             'totalSiswa',
