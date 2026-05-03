@@ -36,6 +36,7 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login.pag
 
 // Proses login
 Route::post('/login', [LoginController::class, 'login'])->name('login.process');
+Route::post('/login/demo', [LoginController::class, 'demoLogin'])->name('login.demo');
 
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');

@@ -46,6 +46,91 @@
                 </div>
 
                 {{-- HEADING --}}
+                <div class="demo-badge">
+                    <span class="material-symbols-rounded" style="font-size: 16px;">science</span>
+                    Mode Pameran
+                </div>
+
+                <h1 class="login-heading">
+                    Pilih Role untuk<br>Masuk
+                </h1>
+                <p class="login-subheading">
+                    Klik salah satu role untuk menjelajahi dashboard
+                </p>
+
+                {{-- Error message for demo login --}}
+                @if ($errors->has('demo'))
+                    <div class="toast toast-error" style="background: #FEF2F2; border-color: #FECACA; color: #991B1B;">
+                        <span class="material-symbols-rounded" style="color: #DC2626;">error</span>
+                        <div class="toast-text">{{ $errors->first('demo') }}</div>
+                    </div>
+                @endif
+
+                @if (session('password_reset_success'))
+                    <div class="toast toast-success" id="resetToast">
+                        <span class="material-symbols-rounded">check_circle</span>
+                        <div class="toast-text">{{ session('password_reset_success') }}</div>
+                        <button type="button" class="toast-close" aria-label="Tutup notifikasi">&times;</button>
+                    </div>
+                @endif
+
+                {{-- ROLE CARDS --}}
+                <div class="role-cards">
+                    {{-- ADMIN --}}
+                    <form method="POST" action="{{ route('login.demo') }}">
+                        @csrf
+                        <input type="hidden" name="role" value="Admin">
+                        <button type="submit" class="role-card role-card-admin" id="btnLoginAdmin">
+                            <div class="role-card-icon role-card-icon-admin">
+                                <span class="material-symbols-rounded">admin_panel_settings</span>
+                            </div>
+                            <div class="role-card-info">
+                                <span class="role-card-title">Admin</span>
+                                <span class="role-card-desc">Kelola data sekolah, siswa & guru</span>
+                            </div>
+                            <span class="material-symbols-rounded role-card-arrow">arrow_forward</span>
+                        </button>
+                    </form>
+
+                    {{-- GURU --}}
+                    <form method="POST" action="{{ route('login.demo') }}">
+                        @csrf
+                        <input type="hidden" name="role" value="Guru">
+                        <button type="submit" class="role-card role-card-guru" id="btnLoginGuru">
+                            <div class="role-card-icon role-card-icon-guru">
+                                <span class="material-symbols-rounded">school</span>
+                            </div>
+                            <div class="role-card-info">
+                                <span class="role-card-title">Guru</span>
+                                <span class="role-card-desc">Absensi, nilai & jadwal mengajar</span>
+                            </div>
+                            <span class="material-symbols-rounded role-card-arrow">arrow_forward</span>
+                        </button>
+                    </form>
+
+                    {{-- ORANG TUA --}}
+                    <form method="POST" action="{{ route('login.demo') }}">
+                        @csrf
+                        <input type="hidden" name="role" value="Orang Tua">
+                        <button type="submit" class="role-card role-card-ortu" id="btnLoginOrtu">
+                            <div class="role-card-icon role-card-icon-ortu">
+                                <span class="material-symbols-rounded">family_restroom</span>
+                            </div>
+                            <div class="role-card-info">
+                                <span class="role-card-title">Orang Tua</span>
+                                <span class="role-card-desc">Pantau nilai, absensi & rapor anak</span>
+                            </div>
+                            <span class="material-symbols-rounded role-card-arrow">arrow_forward</span>
+                        </button>
+                    </form>
+                </div>
+
+                {{-- ============================================
+                     ORIGINAL LOGIN FORM (commented out for exhibition)
+                     Uncomment this section and remove the role cards
+                     above to restore normal email/password login.
+                ============================================ --}}
+                {{--
                 <h1 class="login-heading">
                     Masuk ke<br>Mutiara Academy
                 </h1>
@@ -64,37 +149,29 @@
                 <form method="POST" action="{{ route('login.process') }}" class="login-form" id="loginForm">
                     @csrf
 
-                    {{-- USERNAME FIELD --}}
                     <div class="field-group">
                         <label for="email" class="field-label">Email</label>
-
                         <div class="field-input-wrapper">
                             <input id="email" type="email" name="email"
                                 value="{{ session('login_email', old('email')) }}" placeholder="Email..."
                                 class="field-input @error('email') field-input-error @enderror" autocomplete="email"
                                 autofocus>
                         </div>
-
                         @error('email')
                             <p class="field-error-text">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- PASSWORD FIELD --}}
                     <div class="field-group password-group">
                         <label for="password" class="field-label">Kata Sandi</label>
-
                         <div class="field-input-wrapper field-input-password">
                             <input id="password" type="password" name="password" value="{{ old('password') }}"
                                 class="field-input @error('password') field-input-error @enderror"
                                 placeholder="Kata sandi..." autocomplete="current-password">
-
                             <button type="button" class="password-toggle" aria-label="Toggle visibility">
                                 <span class="material-symbols-rounded">visibility_off</span>
                             </button>
                         </div>
-
-                        {{-- error khusus password --}}
                         @error('password')
                             <p class="field-error-text">{{ $message }}</p>
                         @enderror
@@ -104,11 +181,11 @@
                         <a class="text-link" href="{{ route('password.request') }}">Lupa kata sandi?</a>
                     </div>
 
-                    {{-- LOGIN BUTTON --}}
                     <button type="submit" class="login-button login-button-disabled" id="loginButton" disabled>
                         Masuk
                     </button>
                 </form>
+                --}}
 
             </div>
         </div>
@@ -117,47 +194,11 @@
 
     <script>
         (function() {
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
-            const loginButton = document.getElementById('loginButton');
-            const toggleButton = document.querySelector('.password-toggle');
-            const toggleIcon = toggleButton?.querySelector('.material-symbols-rounded');
+            // Toast close handler
             const toast = document.getElementById('resetToast');
             const toastClose = toast?.querySelector('.toast-close');
-
-            function updateButtonState() {
-                const canSubmit =
-                    emailInput.value.trim() !== '' &&
-                    passwordInput.value.trim() !== '';
-
-                if (canSubmit) {
-                    loginButton.disabled = false;
-                    loginButton.classList.remove('login-button-disabled');
-                    loginButton.classList.add('login-button-active');
-                } else {
-                    loginButton.disabled = true;
-                    loginButton.classList.add('login-button-disabled');
-                    loginButton.classList.remove('login-button-active');
-                }
-            }
-
-            emailInput.addEventListener("input", updateButtonState);
-            passwordInput.addEventListener("input", updateButtonState);
-
-            updateButtonState();
-
-            if (toggleButton) {
-                toggleButton.addEventListener('click', function() {
-                    const showing = passwordInput.type === 'text';
-                    passwordInput.type = showing ? 'password' : 'text';
-                    toggleIcon.textContent = showing ? 'visibility_off' : 'visibility';
-                });
-            }
-
-            if (toast) {
-                const hideToast = () => toast.remove();
-
-                toastClose?.addEventListener('click', hideToast);
+            if (toast && toastClose) {
+                toastClose.addEventListener('click', () => toast.remove());
             }
         })();
     </script>

@@ -75,6 +75,42 @@ class LoginController extends Controller
     }
 
     /**
+     * Demo login untuk mode pameran.
+     * Langsung login sebagai role tertentu tanpa email/password.
+     */
+    public function demoLogin(Request $request)
+    {
+        $role = $request->input('role');
+
+        // Validasi role yang diizinkan
+        $allowedRoles = ['Admin', 'Guru', 'Orang Tua'];
+        if (!in_array($role, $allowedRoles)) {
+            return back()->withErrors([
+                'demo' => 'Role tidak valid.',
+            ]);
+        }
+
+        // Cari user aktif pertama yang memiliki role tersebut
+        $user = User::where('status', 1)
+            ->whereHas('roles', function ($query) use ($role) {
+                $query->where('nama_role', $role);
+            })
+            ->first();
+
+        if (!$user) {
+            return back()->withErrors([
+                'demo' => "Tidak ditemukan akun aktif untuk role {$role}.",
+            ]);
+        }
+
+        // Login langsung tanpa password
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->intended($this->redirectPathForRole($user));
+    }
+
+    /**
      * Logout user.
      */
     public function logout(Request $request)
